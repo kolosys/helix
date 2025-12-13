@@ -12,7 +12,7 @@ HTTP web framework for Go with stdlib compatibility.
 
 ## Constants
 
-### MIMETextPlain, MIMETextHTML, MIMETextCSS, MIMETextCSV, MIMETextJavaScript, MIMETextXML, MIMETextPlainCharsetUTF8, MIMETextHTMLCharsetUTF8, MIMETextCSSCharsetUTF8, MIMETextCSVCharsetUTF8, MIMETextJavaScriptCharsetUTF8, MIMETextXMLCharsetUTF8, MIMEApplicationJSON, MIMEApplicationXML, MIMEApplicationJavaScript, MIMEApplicationXHTMLXML, MIMEApplicationJSONCharsetUTF8, MIMEApplicationXMLCharsetUTF8, MIMEApplicationJavaScriptCharsetUTF8, MIMEApplicationProblemJSON, MIMEApplicationForm, MIMEApplicationProtobuf, MIMEApplicationMsgPack, MIMEApplicationOctetStream, MIMEApplicationPDF, MIMEApplicationZip, MIMEApplicationGzip, MIMEMultipartForm, MIMEImagePNG, MIMEImageSVG, MIMEImageJPEG, MIMEImageGIF, MIMEImageWebP, MIMEImageICO, MIMEImageAVIF, MIMEAudioMPEG, MIMEAudioWAV, MIMEAudioOGG, MIMEVideoMP4, MIMEVideoWebM, MIMEVideoOGG
+**MIMETextPlain, MIMETextHTML, MIMETextCSS, MIMETextCSV, MIMETextJavaScript, MIMETextXML, MIMETextPlainCharsetUTF8, MIMETextHTMLCharsetUTF8, MIMETextCSSCharsetUTF8, MIMETextCSVCharsetUTF8, MIMETextJavaScriptCharsetUTF8, MIMETextXMLCharsetUTF8, MIMEApplicationJSON, MIMEApplicationXML, MIMEApplicationJavaScript, MIMEApplicationXHTMLXML, MIMEApplicationJSONCharsetUTF8, MIMEApplicationXMLCharsetUTF8, MIMEApplicationJavaScriptCharsetUTF8, MIMEApplicationProblemJSON, MIMEApplicationForm, MIMEApplicationProtobuf, MIMEApplicationMsgPack, MIMEApplicationOctetStream, MIMEApplicationPDF, MIMEApplicationZip, MIMEApplicationGzip, MIMEMultipartForm, MIMEImagePNG, MIMEImageSVG, MIMEImageJPEG, MIMEImageGIF, MIMEImageWebP, MIMEImageICO, MIMEImageAVIF, MIMEAudioMPEG, MIMEAudioWAV, MIMEAudioOGG, MIMEVideoMP4, MIMEVideoWebM, MIMEVideoOGG**
 
 MIME type constants for HTTP Content-Type headers.
 Base types (without charset) are used for content-type detection/matching.
@@ -20,35 +20,116 @@ CharsetUTF8 variants are used for setting response headers.
 
 
 ```go
-&{0xc000238510 [MIMETextPlain] <nil> [0xc00023b440] <nil>}&{<nil> [MIMETextHTML] <nil> [0xc00023b480] <nil>}&{<nil> [MIMETextCSS] <nil> [0xc00023b4e0] <nil>}&{<nil> [MIMETextCSV] <nil> [0xc00023b520] <nil>}&{<nil> [MIMETextJavaScript] <nil> [0xc00023b560] <nil>}&{<nil> [MIMETextXML] <nil> [0xc00023b5a0] <nil>}&{0xc000238540 [MIMETextPlainCharsetUTF8] <nil> [0xc00023b600] <nil>}&{<nil> [MIMETextHTMLCharsetUTF8] <nil> [0xc00023b640] <nil>}&{<nil> [MIMETextCSSCharsetUTF8] <nil> [0xc00023b680] <nil>}&{<nil> [MIMETextCSVCharsetUTF8] <nil> [0xc00023b6c0] <nil>}&{<nil> [MIMETextJavaScriptCharsetUTF8] <nil> [0xc00023b700] <nil>}&{<nil> [MIMETextXMLCharsetUTF8] <nil> [0xc00023b740] <nil>}&{0xc000238570 [MIMEApplicationJSON] <nil> [0xc00023b780] <nil>}&{<nil> [MIMEApplicationXML] <nil> [0xc00023b7c0] <nil>}&{<nil> [MIMEApplicationJavaScript] <nil> [0xc00023b800] <nil>}&{<nil> [MIMEApplicationXHTMLXML] <nil> [0xc00023b840] <nil>}&{0xc0002385a0 [MIMEApplicationJSONCharsetUTF8] <nil> [0xc00023b880] <nil>}&{<nil> [MIMEApplicationXMLCharsetUTF8] <nil> [0xc00023b8c0] <nil>}&{<nil> [MIMEApplicationJavaScriptCharsetUTF8] <nil> [0xc00023b900] <nil>}&{0xc0002385d0 [MIMEApplicationProblemJSON] <nil> [0xc00023b940] <nil>}&{<nil> [MIMEApplicationForm] <nil> [0xc00023b980] <nil>}&{<nil> [MIMEApplicationProtobuf] <nil> [0xc00023b9c0] <nil>}&{<nil> [MIMEApplicationMsgPack] <nil> [0xc00023ba00] <nil>}&{<nil> [MIMEApplicationOctetStream] <nil> [0xc00023ba40] <nil>}&{<nil> [MIMEApplicationPDF] <nil> [0xc00023ba80] <nil>}&{<nil> [MIMEApplicationZip] <nil> [0xc00023bac0] <nil>}&{<nil> [MIMEApplicationGzip] <nil> [0xc00023bb00] <nil>}&{<nil> [MIMEMultipartForm] <nil> [0xc00023bb40] <nil>}&{0xc000238600 [MIMEImagePNG] <nil> [0xc00023bb80] <nil>}&{<nil> [MIMEImageSVG] <nil> [0xc00023bbc0] <nil>}&{<nil> [MIMEImageJPEG] <nil> [0xc00023bc00] <nil>}&{<nil> [MIMEImageGIF] <nil> [0xc00023bc40] <nil>}&{<nil> [MIMEImageWebP] <nil> [0xc00023bc80] <nil>}&{<nil> [MIMEImageICO] <nil> [0xc00023bcc0] <nil>}&{<nil> [MIMEImageAVIF] <nil> [0xc00023bd00] <nil>}&{0xc000238630 [MIMEAudioMPEG] <nil> [0xc00023bd40] <nil>}&{<nil> [MIMEAudioWAV] <nil> [0xc00023bd80] <nil>}&{<nil> [MIMEAudioOGG] <nil> [0xc00023bdc0] <nil>}&{0xc000238660 [MIMEVideoMP4] <nil> [0xc00023be00] <nil>}&{<nil> [MIMEVideoWebM] <nil> [0xc00023be40] <nil>}&{<nil> [MIMEVideoOGG] <nil> [0xc00023be80] <nil>}
+const MIMETextPlain = "text/plain"	// Text types - base (for matching)
+
+const MIMETextHTML = "text/html"
+const MIMETextCSS = "text/css"
+const MIMETextCSV = "text/csv"
+const MIMETextJavaScript = "text/javascript"
+const MIMETextXML = "text/xml"
+const MIMETextPlainCharsetUTF8 = "text/plain; charset=utf-8"	// Text types - with charset (for responses)
+
+const MIMETextHTMLCharsetUTF8 = "text/html; charset=utf-8"
+const MIMETextCSSCharsetUTF8 = "text/css; charset=utf-8"
+const MIMETextCSVCharsetUTF8 = "text/csv; charset=utf-8"
+const MIMETextJavaScriptCharsetUTF8 = "text/javascript; charset=utf-8"
+const MIMETextXMLCharsetUTF8 = "text/xml; charset=utf-8"
+const MIMEApplicationJSON = "application/json"	// Application types - base (for matching)
+
+const MIMEApplicationXML = "application/xml"
+const MIMEApplicationJavaScript = "application/javascript"
+const MIMEApplicationXHTMLXML = "application/xhtml+xml"
+const MIMEApplicationJSONCharsetUTF8 = "application/json; charset=utf-8"	// Application types - with charset (for responses)
+
+const MIMEApplicationXMLCharsetUTF8 = "application/xml; charset=utf-8"
+const MIMEApplicationJavaScriptCharsetUTF8 = "application/javascript; charset=utf-8"
+const MIMEApplicationProblemJSON = "application/problem+json"	// Application types - no charset needed
+
+const MIMEApplicationForm = "application/x-www-form-urlencoded"
+const MIMEApplicationProtobuf = "application/x-protobuf"
+const MIMEApplicationMsgPack = "application/msgpack"
+const MIMEApplicationOctetStream = "application/octet-stream"
+const MIMEApplicationPDF = "application/pdf"
+const MIMEApplicationZip = "application/zip"
+const MIMEApplicationGzip = "application/gzip"
+const MIMEMultipartForm = "multipart/form-data"
+const MIMEImagePNG = "image/png"	// Image types
+
+const MIMEImageSVG = "image/svg+xml"
+const MIMEImageJPEG = "image/jpeg"
+const MIMEImageGIF = "image/gif"
+const MIMEImageWebP = "image/webp"
+const MIMEImageICO = "image/x-icon"
+const MIMEImageAVIF = "image/avif"
+const MIMEAudioMPEG = "audio/mpeg"	// Audio types
+
+const MIMEAudioWAV = "audio/wav"
+const MIMEAudioOGG = "audio/ogg"
+const MIMEVideoMP4 = "video/mp4"	// Video types
+
+const MIMEVideoWebM = "video/webm"
+const MIMEVideoOGG = "video/ogg"
 ```
 
-### Version, website, banner
+**Version**
 
 
 
 ```go
-&{0xc0002c4b70 [Version] <nil> [0xc0002ce7e0] <nil>}&{<nil> [website] <nil> [0xc0002ce820] <nil>}&{0xc0002c4ba0 [banner] <nil> [0xc0002ce8a0] <nil>}
+const Version = "0.1.0"	// Version of Hexix
+
 ```
 
 ## Variables
 
-### ErrBindingFailed, ErrUnsupportedType, ErrInvalidJSON, ErrRequiredField, ErrBodyAlreadyRead, ErrInvalidFieldValue
+**ErrBindingFailed, ErrUnsupportedType, ErrInvalidJSON, ErrRequiredField, ErrBodyAlreadyRead, ErrInvalidFieldValue**
 
 Binding errors
 
 
 ```go
-&{<nil> [ErrBindingFailed] <nil> [0xc000214b40] <nil>}&{<nil> [ErrUnsupportedType] <nil> [0xc000214b80] <nil>}&{<nil> [ErrInvalidJSON] <nil> [0xc000214bc0] <nil>}&{<nil> [ErrRequiredField] <nil> [0xc000214c40] <nil>}&{<nil> [ErrBodyAlreadyRead] <nil> [0xc000214c80] <nil>}&{<nil> [ErrInvalidFieldValue] <nil> [0xc000214cc0] <nil>}
+var ErrBindingFailed = errors.New("helix: binding failed")
+var ErrUnsupportedType = errors.New("helix: unsupported type for binding")
+var ErrInvalidJSON = errors.New("helix: invalid JSON body")
+var ErrRequiredField = errors.New("helix: required field missing")
+var ErrBodyAlreadyRead = errors.New("helix: request body already read")
+var ErrInvalidFieldValue = errors.New("helix: invalid field value")
 ```
 
-### ErrBadRequest, ErrUnauthorized, ErrForbidden, ErrNotFound, ErrMethodNotAllowed, ErrConflict, ErrGone, ErrUnprocessableEntity, ErrTooManyRequests, ErrInternal, ErrNotImplemented, ErrBadGateway, ErrServiceUnavailable, ErrGatewayTimeout
+**ErrBadRequest, ErrUnauthorized, ErrForbidden, ErrNotFound, ErrMethodNotAllowed, ErrConflict, ErrGone, ErrUnprocessableEntity, ErrTooManyRequests, ErrInternal, ErrNotImplemented, ErrBadGateway, ErrServiceUnavailable, ErrGatewayTimeout**
 
 Sentinel errors for common HTTP error responses.
 
 
 ```go
-&{0xc0003085a0 [ErrBadRequest] <nil> [0xc000305700] <nil>}&{0xc0003085e8 [ErrUnauthorized] <nil> [0xc000305780] <nil>}&{0xc000308630 [ErrForbidden] <nil> [0xc000305800] <nil>}&{0xc000308678 [ErrNotFound] <nil> [0xc0003058c0] <nil>}&{0xc0003086c0 [ErrMethodNotAllowed] <nil> [0xc000305940] <nil>}&{0xc000308708 [ErrConflict] <nil> [0xc0003059c0] <nil>}&{0xc000308750 [ErrGone] <nil> [0xc000305a40] <nil>}&{0xc000308798 [ErrUnprocessableEntity] <nil> [0xc000305ac0] <nil>}&{0xc0003087e0 [ErrTooManyRequests] <nil> [0xc000305b40] <nil>}&{0xc000308828 [ErrInternal] <nil> [0xc000305bc0] <nil>}&{0xc000308870 [ErrNotImplemented] <nil> [0xc000305c40] <nil>}&{0xc0003088b8 [ErrBadGateway] <nil> [0xc000305cc0] <nil>}&{0xc000308900 [ErrServiceUnavailable] <nil> [0xc000305d40] <nil>}&{0xc000308948 [ErrGatewayTimeout] <nil> [0xc000305dc0] <nil>}
+var ErrBadRequest = NewProblem(http.StatusBadRequest, "bad_request", "Bad Request")	// ErrBadRequest represents a 400 Bad Request error.
+
+var ErrUnauthorized = NewProblem(http.StatusUnauthorized, "unauthorized", "Unauthorized")	// ErrUnauthorized represents a 401 Unauthorized error.
+
+var ErrForbidden = NewProblem(http.StatusForbidden, "forbidden", "Forbidden")	// ErrForbidden represents a 403 Forbidden error.
+
+var ErrNotFound = NewProblem(http.StatusNotFound, "not_found", "Not Found")	// ErrNotFound represents a 404 Not Found error.
+
+var ErrMethodNotAllowed = NewProblem(http.StatusMethodNotAllowed, "method_not_allowed", "Method Not Allowed")	// ErrMethodNotAllowed represents a 405 Method Not Allowed error.
+
+var ErrConflict = NewProblem(http.StatusConflict, "conflict", "Conflict")	// ErrConflict represents a 409 Conflict error.
+
+var ErrGone = NewProblem(http.StatusGone, "gone", "Gone")	// ErrGone represents a 410 Gone error.
+
+var ErrUnprocessableEntity = NewProblem(http.StatusUnprocessableEntity, "unprocessable_entity", "Unprocessable Entity")	// ErrUnprocessableEntity represents a 422 Unprocessable Entity error.
+
+var ErrTooManyRequests = NewProblem(http.StatusTooManyRequests, "too_many_requests", "Too Many Requests")	// ErrTooManyRequests represents a 429 Too Many Requests error.
+
+var ErrInternal = NewProblem(http.StatusInternalServerError, "internal_error", "Internal Server Error")	// ErrInternal represents a 500 Internal Server Error.
+
+var ErrNotImplemented = NewProblem(http.StatusNotImplemented, "not_implemented", "Not Implemented")	// ErrNotImplemented represents a 501 Not Implemented error.
+
+var ErrBadGateway = NewProblem(http.StatusBadGateway, "bad_gateway", "Bad Gateway")	// ErrBadGateway represents a 502 Bad Gateway error.
+
+var ErrServiceUnavailable = NewProblem(http.StatusServiceUnavailable, "service_unavailable", "Service Unavailable")	// ErrServiceUnavailable represents a 503 Service Unavailable error.
+
+var ErrGatewayTimeout = NewProblem(http.StatusGatewayTimeout, "gateway_timeout", "Gateway Timeout")	// ErrGatewayTimeout represents a 504 Gateway Timeout error.
+
 ```
 
 ## Types
@@ -63,8 +144,6 @@ Ctx provides a unified context for HTTP handlers with fluent accessors for reque
 ctx := Ctx{
     Request: &/* value */{},
     Response: /* value */,
-    status: 42,
-    store: map[],
 }
 ```
 
@@ -74,8 +153,6 @@ ctx := Ctx{
 type Ctx struct {
     Request *http.Request
     Response http.ResponseWriter
-    status int
-    store map[string]any
 }
 ```
 
@@ -85,8 +162,6 @@ type Ctx struct {
 | ----- | ---- | ----------- |
 | Request | `*http.Request` |  |
 | Response | `http.ResponseWriter` |  |
-| status | `int` | status holds the pending status code for chained responses |
-| store | `map[string]any` | store holds request-scoped values for dependency injection |
 
 ### Constructor Functions
 
@@ -157,11 +232,10 @@ func Attachment(w http.ResponseWriter, filename string)
 BadRequest writes a 400 Bad Request error response.
 
 ```go
-func BadRequest(w http.ResponseWriter, message string) error
+func (*Ctx) BadRequest(message string) error
 ```
 
 **Parameters:**
-- `w` (http.ResponseWriter)
 - `message` (string)
 
 **Returns:**
@@ -172,14 +246,13 @@ func BadRequest(w http.ResponseWriter, message string) error
 Bind binds the request body to the given struct using JSON decoding.
 
 ```go
-func Bind(r *http.Request) (T, error)
+func (*Ctx) Bind(v any) error
 ```
 
 **Parameters:**
-- `r` (*http.Request)
+- `v` (any)
 
 **Returns:**
-- T
 - error
 
 ### BindJSON
@@ -187,13 +260,14 @@ func Bind(r *http.Request) (T, error)
 BindJSON is an alias for Bind.
 
 ```go
-func (*Ctx) BindJSON(v any) error
+func BindJSON(r *http.Request) (T, error)
 ```
 
 **Parameters:**
-- `v` (any)
+- `r` (*http.Request)
 
 **Returns:**
+- T
 - error
 
 ### BindPagination
@@ -321,15 +395,14 @@ func Forbidden(w http.ResponseWriter, message string) error
 Get retrieves a value from the request-scoped store.
 
 ```go
-func Get() (T, bool)
+func (**ast.IndexExpr) Get(h *ast.IndexListExpr) **ast.IndexExpr
 ```
 
 **Parameters:**
-  None
+- `h` (*ast.IndexListExpr)
 
 **Returns:**
-- T
-- bool
+- **ast.IndexExpr
 
 ### GetInt
 
@@ -408,10 +481,11 @@ func (*Ctx) Inline(filename string) *Ctx
 InternalServerError writes a 500 Internal Server Error response.
 
 ```go
-func (*Ctx) InternalServerError(message string) error
+func InternalServerError(w http.ResponseWriter, message string) error
 ```
 
 **Parameters:**
+- `w` (http.ResponseWriter)
 - `message` (string)
 
 **Returns:**
@@ -438,14 +512,14 @@ func JSON(w http.ResponseWriter, status int, v any) error
 MustGet retrieves a value from the request-scoped store or panics if not found.
 
 ```go
-func MustGet() T
+func (*Ctx) MustGet(key string) any
 ```
 
 **Parameters:**
-  None
+- `key` (string)
 
 **Returns:**
-- T
+- any
 
 ### NoContent
 
@@ -542,10 +616,11 @@ func Param(r *http.Request, name string) string
 ParamInt returns the value of a path parameter as an int.
 
 ```go
-func (*Ctx) ParamInt(name string) (int, error)
+func ParamInt(r *http.Request, name string) (int, error)
 ```
 
 **Parameters:**
+- `r` (*http.Request)
 - `name` (string)
 
 **Returns:**
@@ -572,11 +647,10 @@ func (*Ctx) ParamInt64(name string) (int64, error)
 ParamUUID returns the value of a path parameter validated as a UUID.
 
 ```go
-func ParamUUID(r *http.Request, name string) (string, error)
+func (*Ctx) ParamUUID(name string) (string, error)
 ```
 
 **Parameters:**
-- `r` (*http.Request)
 - `name` (string)
 
 **Returns:**
@@ -617,10 +691,11 @@ func Query(r *http.Request, name string) string
 QueryBool returns the first value of a query parameter as a bool.
 
 ```go
-func (*Ctx) QueryBool(name string) bool
+func QueryBool(r *http.Request, name string) bool
 ```
 
 **Parameters:**
+- `r` (*http.Request)
 - `name` (string)
 
 **Returns:**
@@ -646,10 +721,11 @@ func (*Ctx) QueryDefault(name, defaultVal string) string
 QueryFloat64 returns the first value of a query parameter as a float64.
 
 ```go
-func (*Ctx) QueryFloat64(name string, defaultVal float64) float64
+func QueryFloat64(r *http.Request, name string, defaultVal float64) float64
 ```
 
 **Parameters:**
+- `r` (*http.Request)
 - `name` (string)
 - `defaultVal` (float64)
 
@@ -661,11 +737,10 @@ func (*Ctx) QueryFloat64(name string, defaultVal float64) float64
 QueryInt returns the first value of a query parameter as an int.
 
 ```go
-func QueryInt(r *http.Request, name string, defaultVal int) int
+func (*Ctx) QueryInt(name string, defaultVal int) int
 ```
 
 **Parameters:**
-- `r` (*http.Request)
 - `name` (string)
 - `defaultVal` (int)
 
@@ -693,11 +768,10 @@ func QueryInt64(r *http.Request, name string, defaultVal int64) int64
 QuerySlice returns all values of a query parameter as a string slice.
 
 ```go
-func QuerySlice(r *http.Request, name string) []string
+func (*Ctx) QuerySlice(name string) []string
 ```
 
 **Parameters:**
-- `r` (*http.Request)
 - `name` (string)
 
 **Returns:**
@@ -708,12 +782,10 @@ func QuerySlice(r *http.Request, name string) []string
 Redirect redirects the request to the given URL.
 
 ```go
-func Redirect(w http.ResponseWriter, r *http.Request, url string, code int)
+func (*Ctx) Redirect(url string, code int)
 ```
 
 **Parameters:**
-- `w` (http.ResponseWriter)
-- `r` (*http.Request)
 - `url` (string)
 - `code` (int)
 
@@ -889,23 +961,6 @@ var value ErrorHandler
 type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error)
 ```
 
-### Constructor Functions
-
-### getErrorHandler
-
-getErrorHandler retrieves the error handler from the request context.
-
-```go
-func getErrorHandler(r *http.Request) (ErrorHandler, bool)
-```
-
-**Parameters:**
-- `r` (*http.Request)
-
-**Returns:**
-- ErrorHandler
-- bool
-
 ### FieldError
 ----------------------------------------------------------------------------- Validation Errors ----------------------------------------------------------------------------- FieldError represents a validation error for a specific field.
 
@@ -943,10 +998,7 @@ Group represents a group of routes with a common prefix and middleware.
 ```go
 // Create a new Group
 group := Group{
-    prefix: "example",
-    middleware: [],
-    server: &Server{}{},
-    parent: &Group{}{},
+
 }
 ```
 
@@ -954,21 +1006,8 @@ group := Group{
 
 ```go
 type Group struct {
-    prefix string
-    middleware []Middleware
-    server *Server
-    parent *Group
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| prefix | `string` |  |
-| middleware | `[]Middleware` |  |
-| server | `*Server` |  |
-| parent | `*Group` |  |
 
 ## Methods
 
@@ -1100,7 +1139,7 @@ func (*Group) MountFunc(prefix string, fn func(r RouteRegistrar), mw ...any)
 OPTIONS registers a handler for OPTIONS requests.
 
 ```go
-func (*Server) OPTIONS(pattern string, handler http.HandlerFunc)
+func (*Group) OPTIONS(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -1115,7 +1154,7 @@ func (*Server) OPTIONS(pattern string, handler http.HandlerFunc)
 PATCH registers a handler for PATCH requests.
 
 ```go
-func (*Server) PATCH(pattern string, handler http.HandlerFunc)
+func (*Group) PATCH(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -1175,7 +1214,7 @@ func (*Server) Resource(pattern string, mw ...any) *ResourceBuilder
 Static serves static files from the given file system root.
 
 ```go
-func (*Server) Static(pattern, root string)
+func (*Group) Static(pattern, root string)
 ```
 
 **Parameters:**
@@ -1198,48 +1237,6 @@ func (*Server) Use(mw ...any)
 
 **Returns:**
   None
-
-### allMiddleware
-
-allMiddleware returns all middleware for this group, including parent middleware.
-
-```go
-func (*Group) allMiddleware() []Middleware
-```
-
-**Parameters:**
-  None
-
-**Returns:**
-- []Middleware
-
-### fullPrefix
-
-fullPrefix returns the complete prefix including parent prefixes.
-
-```go
-func (*Group) fullPrefix() string
-```
-
-**Parameters:**
-  None
-
-**Returns:**
-- string
-
-### wrapHandler
-
-wrapHandler wraps a handler with the group's middleware.
-
-```go
-func (**ast.IndexExpr) wrapHandler(handler http.HandlerFunc) http.HandlerFunc
-```
-
-**Parameters:**
-- `handler` (http.HandlerFunc)
-
-**Returns:**
-- http.HandlerFunc
 
 ### Handler
 Handler is a generic handler function that accepts a typed request and returns a typed response. The request type is automatically bound from path parameters, query parameters, headers, and JSON body. The response is automatically encoded as JSON.
@@ -1266,9 +1263,7 @@ HealthBuilder provides a fluent interface for building health check endpoints.
 ```go
 // Create a new HealthBuilder
 healthbuilder := HealthBuilder{
-    checks: map[],
-    version: "example",
-    timeout: /* value */,
+
 }
 ```
 
@@ -1276,19 +1271,8 @@ healthbuilder := HealthBuilder{
 
 ```go
 type HealthBuilder struct {
-    checks map[string]HealthCheck
-    version string
-    timeout time.Duration
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| checks | `map[string]HealthCheck` |  |
-| version | `string` |  |
-| timeout | `time.Duration` |  |
 
 ### Constructor Functions
 
@@ -1615,35 +1599,6 @@ func ProvideMiddleware(factory func(r *http.Request) T) Middleware
 
 **Returns:**
 - Middleware
-
-### convertToMiddleware
-
-convertToMiddleware converts any middleware type to Middleware. Returns an error with detailed type information if conversion fails.
-
-```go
-func convertToMiddleware(m any) (Middleware, error)
-```
-
-**Parameters:**
-- `m` (any)
-
-**Returns:**
-- Middleware
-- error
-
-### toMiddleware
-
-toMiddleware converts any middleware type to Middleware.
-
-```go
-func toMiddleware(mw []any) []Middleware
-```
-
-**Parameters:**
-- `mw` ([]any)
-
-**Returns:**
-- []Middleware
 
 ### Module
 } func (m *UserModule) Register(r RouteRegistrar) { r.GET("/", m.list) r.POST("/", m.create) r.GET("/{id}", m.get) } // Mount the module s.Mount("/users", &UserModule{store: store})
@@ -2532,10 +2487,7 @@ ResourceBuilder provides a fluent interface for defining REST resource routes.
 ```go
 // Create a new ResourceBuilder
 resourcebuilder := ResourceBuilder{
-    server: &Server{}{},
-    group: &Group{}{},
-    pattern: "example",
-    middleware: [],
+
 }
 ```
 
@@ -2543,21 +2495,8 @@ resourcebuilder := ResourceBuilder{
 
 ```go
 type ResourceBuilder struct {
-    server *Server
-    group *Group
-    pattern string
-    middleware []Middleware
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| server | `*Server` |  |
-| group | `*Group` |  |
-| pattern | `string` |  |
-| middleware | `[]Middleware` |  |
 
 ## Methods
 
@@ -2642,14 +2581,14 @@ func (*ResourceBuilder) Destroy(handler http.HandlerFunc) *ResourceBuilder
 Get registers a GET handler for a single resource (e.g., GET /users/{id}).
 
 ```go
-func Get() (T, bool)
+func (*Ctx) Get(key string) (any, bool)
 ```
 
 **Parameters:**
-  None
+- `key` (string)
 
 **Returns:**
-- T
+- any
 - bool
 
 ### Index
@@ -2750,36 +2689,6 @@ func (**ast.IndexExpr) Update(h *ast.IndexListExpr) **ast.IndexExpr
 
 **Returns:**
 - **ast.IndexExpr
-
-### handle
-
-handle registers a route using either the server or group.
-
-```go
-func (**ast.IndexExpr) handle(method, pattern string, handler http.HandlerFunc)
-```
-
-**Parameters:**
-- `method` (string)
-- `pattern` (string)
-- `handler` (http.HandlerFunc)
-
-**Returns:**
-  None
-
-### wrapHandler
-
-wrapHandler wraps a handler with the resource's middleware.
-
-```go
-func (**ast.IndexExpr) wrapHandler(handler http.HandlerFunc) http.HandlerFunc
-```
-
-**Parameters:**
-- `handler` (http.HandlerFunc)
-
-**Returns:**
-- http.HandlerFunc
 
 ### RouteInfo
 RouteInfo contains information about a registered route.
@@ -2904,10 +2813,7 @@ Router handles HTTP request routing.
 ```go
 // Create a new Router
 router := Router{
-    trees: map[],
-    routes: [],
-    mu: /* value */,
-    paramsPool: /* value */,
+
 }
 ```
 
@@ -2915,37 +2821,8 @@ router := Router{
 
 ```go
 type Router struct {
-    trees map[string]*routeNode
-    routes []RouteInfo
-    mu sync.RWMutex
-    paramsPool sync.Pool
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| trees | `map[string]*routeNode` | method -> root |
-| routes | `[]RouteInfo` | registered routes for introspection |
-| mu | `sync.RWMutex` |  |
-| paramsPool | `sync.Pool` |  |
-
-### Constructor Functions
-
-### newRouter
-
-newRouter creates a new Router.
-
-```go
-func newRouter() *Router
-```
-
-**Parameters:**
-  None
-
-**Returns:**
-- *Router
 
 ## Methods
 
@@ -2954,7 +2831,7 @@ func newRouter() *Router
 Handle registers a new route with the given method and pattern.
 
 ```go
-func (*Group) Handle(method, pattern string, handler http.HandlerFunc)
+func (*Server) Handle(method, pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -2994,54 +2871,6 @@ func (*Router) ServeHTTP(w http.ResponseWriter, req *http.Request)
 **Returns:**
   None
 
-### addRoute
-
-addRoute adds a route to the tree.
-
-```go
-func (*Router) addRoute(n *routeNode, segments []segment, handler http.HandlerFunc)
-```
-
-**Parameters:**
-- `n` (*routeNode)
-- `segments` ([]segment)
-- `handler` (http.HandlerFunc)
-
-**Returns:**
-  None
-
-### lookup
-
-lookup finds a handler for the given path.
-
-```go
-func (*Router) lookup(n *routeNode, path string, ps *params) http.HandlerFunc
-```
-
-**Parameters:**
-- `n` (*routeNode)
-- `path` (string)
-- `ps` (*params)
-
-**Returns:**
-- http.HandlerFunc
-
-### lookupRecursive
-
-lookupRecursive recursively searches for a matching route.
-
-```go
-func (*Router) lookupRecursive(n *routeNode, path string, ps *params) http.HandlerFunc
-```
-
-**Parameters:**
-- `n` (*routeNode)
-- `path` (string)
-- `ps` (*params)
-
-**Returns:**
-- http.HandlerFunc
-
 ### Server
 Server is the main HTTP server for the Helix framework.
 
@@ -3050,28 +2879,7 @@ Server is the main HTTP server for the Helix framework.
 ```go
 // Create a new Server
 server := Server{
-    router: &Router{}{},
-    middleware: [],
-    httpServer: &/* value */{},
-    addr: "example",
-    readTimeout: /* value */,
-    writeTimeout: /* value */,
-    idleTimeout: /* value */,
-    gracePeriod: /* value */,
-    maxHeaderBytes: 42,
-    tlsCertFile: "example",
-    tlsKeyFile: "example",
-    tlsConfig: &/* value */{},
-    hideBanner: true,
-    banner: "example",
-    onStart: [],
-    onStop: [],
-    errorHandler: ErrorHandler{},
-    basePath: "example",
-    once: /* value */,
-    handler: /* value */,
-    built: true,
-    ctxPool: /* value */,
+
 }
 ```
 
@@ -3079,57 +2887,8 @@ server := Server{
 
 ```go
 type Server struct {
-    router *Router
-    middleware []Middleware
-    httpServer *http.Server
-    addr string
-    readTimeout time.Duration
-    writeTimeout time.Duration
-    idleTimeout time.Duration
-    gracePeriod time.Duration
-    maxHeaderBytes int
-    tlsCertFile string
-    tlsKeyFile string
-    tlsConfig *tls.Config
-    hideBanner bool
-    banner string
-    onStart []func(s *Server)
-    onStop []func(ctx context.Context, s *Server)
-    errorHandler ErrorHandler
-    basePath string
-    once sync.Once
-    handler http.Handler
-    built bool
-    ctxPool sync.Pool
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| router | `*Router` |  |
-| middleware | `[]Middleware` |  |
-| httpServer | `*http.Server` |  |
-| addr | `string` | Configuration |
-| readTimeout | `time.Duration` |  |
-| writeTimeout | `time.Duration` |  |
-| idleTimeout | `time.Duration` |  |
-| gracePeriod | `time.Duration` |  |
-| maxHeaderBytes | `int` |  |
-| tlsCertFile | `string` |  |
-| tlsKeyFile | `string` |  |
-| tlsConfig | `*tls.Config` |  |
-| hideBanner | `bool` |  |
-| banner | `string` |  |
-| onStart | `[]func(s *Server)` | Lifecycle hooks |
-| onStop | `[]func(ctx context.Context, s *Server)` |  |
-| errorHandler | `ErrorHandler` | Error handling |
-| basePath | `string` | Routing |
-| once | `sync.Once` | State |
-| handler | `http.Handler` | Pre-compiled middleware chain |
-| built | `bool` | Whether the handler chain has been built |
-| ctxPool | `sync.Pool` | Object pools for zero-allocation hot path |
 
 ### Constructor Functions
 
@@ -3226,7 +2985,7 @@ func (*Server) CONNECT(pattern string, handler http.HandlerFunc)
 DELETE registers a handler for DELETE requests.
 
 ```go
-func (*Server) DELETE(pattern string, handler http.HandlerFunc)
+func (*Group) DELETE(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -3271,7 +3030,7 @@ func (*Group) Group(prefix string, mw ...any) *Group
 HEAD registers a handler for HEAD requests.
 
 ```go
-func (*Server) HEAD(pattern string, handler http.HandlerFunc)
+func (*Group) HEAD(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -3334,7 +3093,7 @@ func (*Group) MountFunc(prefix string, fn func(r RouteRegistrar), mw ...any)
 OPTIONS registers a handler for OPTIONS requests.
 
 ```go
-func (*Server) OPTIONS(pattern string, handler http.HandlerFunc)
+func (*Group) OPTIONS(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -3552,7 +3311,7 @@ func (*Server) TRACE(pattern string, handler http.HandlerFunc)
 Use adds middleware to the server's middleware chain. Middleware is executed in the order it is added. Accepts Middleware (helix.Middleware is an alias for middleware.Middleware) or func(http.Handler) http.Handler.
 
 ```go
-func (*Group) Use(mw ...any)
+func (*Server) Use(mw ...any)
 ```
 
 **Parameters:**
@@ -3560,48 +3319,6 @@ func (*Group) Use(mw ...any)
 
 **Returns:**
   None
-
-### basePathMiddleware
-
-basePathMiddleware validates that incoming requests start with the base path. Routes are registered with the base path prepended, so the router will match the full path. This middleware only validates and rejects requests that don't start with the base path.
-
-```go
-func (*Server) basePathMiddleware(next http.Handler) http.Handler
-```
-
-**Parameters:**
-- `next` (http.Handler)
-
-**Returns:**
-- http.Handler
-
-### errorHandlerMiddleware
-
-errorHandlerMiddleware injects the error handler into the request context.
-
-```go
-func (*Server) errorHandlerMiddleware(next http.Handler) http.Handler
-```
-
-**Parameters:**
-- `next` (http.Handler)
-
-**Returns:**
-- http.Handler
-
-### prependBasePath
-
-prependBasePath prepends the base path to a route pattern if a base path is set.
-
-```go
-func (*Server) prependBasePath(pattern string) string
-```
-
-**Parameters:**
-- `pattern` (string)
-
-**Returns:**
-- string
 
 ### TypedResourceBuilder
 TypedResourceBuilder provides a fluent interface for defining typed REST resource routes.
@@ -3611,10 +3328,7 @@ TypedResourceBuilder provides a fluent interface for defining typed REST resourc
 ```go
 // Create a new TypedResourceBuilder
 typedresourcebuilder := TypedResourceBuilder{
-    server: &Server{}{},
-    group: &Group{}{},
-    pattern: "example",
-    middleware: [],
+
 }
 ```
 
@@ -3622,21 +3336,8 @@ typedresourcebuilder := TypedResourceBuilder{
 
 ```go
 type TypedResourceBuilder struct {
-    server *Server
-    group *Group
-    pattern string
-    middleware []Middleware
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| server | `*Server` |  |
-| group | `*Group` |  |
-| pattern | `string` |  |
-| middleware | `[]Middleware` |  |
 
 ### Constructor Functions
 
@@ -3723,14 +3424,14 @@ func (**ast.IndexExpr) Delete(h *ast.IndexExpr) **ast.IndexExpr
 Get registers a typed GET handler for a single resource. Handler signature: func(ctx, IDRequest) (Entity, error)
 
 ```go
-func Get() (T, bool)
+func (*Ctx) Get(key string) (any, bool)
 ```
 
 **Parameters:**
-  None
+- `key` (string)
 
 **Returns:**
-- T
+- any
 - bool
 
 ### List
@@ -3775,36 +3476,6 @@ func (**ast.IndexExpr) Update(h *ast.IndexListExpr) **ast.IndexExpr
 **Returns:**
 - **ast.IndexExpr
 
-### handle
-
-handle registers a route using either the server or group.
-
-```go
-func (**ast.IndexExpr) handle(method, pattern string, handler http.HandlerFunc)
-```
-
-**Parameters:**
-- `method` (string)
-- `pattern` (string)
-- `handler` (http.HandlerFunc)
-
-**Returns:**
-  None
-
-### wrapHandler
-
-wrapHandler wraps a handler with the resource's middleware.
-
-```go
-func (**ast.IndexExpr) wrapHandler(handler http.HandlerFunc) http.HandlerFunc
-```
-
-**Parameters:**
-- `handler` (http.HandlerFunc)
-
-**Returns:**
-- http.HandlerFunc
-
 ### Validatable
 Validatable is an interface for types that can validate themselves.
 
@@ -3845,7 +3516,7 @@ ValidationErrors collects multiple validation errors for RFC 7807 response. Impl
 ```go
 // Create a new ValidationErrors
 validationerrors := ValidationErrors{
-    errors: [],
+
 }
 ```
 
@@ -3853,15 +3524,8 @@ validationerrors := ValidationErrors{
 
 ```go
 type ValidationErrors struct {
-    errors []FieldError
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| errors | `[]FieldError` |  |
 
 ### Constructor Functions
 
@@ -4030,13 +3694,12 @@ type ValidationProblem struct {
 Accepted writes a 202 Accepted JSON response.
 
 ```go
-func Accepted(w http.ResponseWriter, v any) error
+func (*Ctx) Accepted(v any) error
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `w` | `http.ResponseWriter` | |
 | `v` | `any` | |
 
 **Returns:**
@@ -4178,17 +3841,18 @@ result := BindHeader(/* parameters */)
 BindJSON binds the JSON request body to a struct.
 
 ```go
-func (*Ctx) BindJSON(v any) error
+func BindJSON(r *http.Request) (T, error)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `v` | `any` | |
+| `r` | `*http.Request` | |
 
 **Returns:**
 | Type | Description |
 |------|-------------|
+| `T` | |
 | `error` | |
 
 **Example:**
@@ -4252,13 +3916,12 @@ result := BindQuery(/* parameters */)
 Blob writes binary data with the given content type.
 
 ```go
-func Blob(w http.ResponseWriter, status int, contentType string, data []byte) error
+func (*Ctx) Blob(status int, contentType string, data []byte) error
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `w` | `http.ResponseWriter` | |
 | `status` | `int` | |
 | `contentType` | `string` | |
 | `data` | `[]byte` | |
@@ -4399,17 +4062,18 @@ result := FromContext(/* parameters */)
 Get retrieves a service from the global registry. Returns the zero value and false if not found.
 
 ```go
-func Get() (T, bool)
+func (**ast.IndexExpr) Get(h *ast.IndexListExpr) **ast.IndexExpr
 ```
 
 **Parameters:**
-None
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `h` | `*ast.IndexListExpr` | |
 
 **Returns:**
 | Type | Description |
 |------|-------------|
-| `T` | |
-| `bool` | |
+| `**ast.IndexExpr` | |
 
 **Example:**
 
@@ -4688,13 +4352,12 @@ result := Inline(/* parameters */)
 InternalServerError writes a 500 Internal Server Error response.
 
 ```go
-func InternalServerError(w http.ResponseWriter, message string) error
+func (*Ctx) InternalServerError(message string) error
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `w` | `http.ResponseWriter` | |
 | `message` | `string` | |
 
 **Returns:**
@@ -4812,16 +4475,18 @@ result := MustFromContext(/* parameters */)
 MustGet retrieves a service from the global registry or panics.
 
 ```go
-func MustGet() T
+func (*Ctx) MustGet(key string) any
 ```
 
 **Parameters:**
-None
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `key` | `string` | |
 
 **Returns:**
 | Type | Description |
 |------|-------------|
-| `T` | |
+| `any` | |
 
 **Example:**
 
@@ -4908,12 +4573,13 @@ result := OK(/* parameters */)
 Param returns the value of a path parameter. Returns an empty string if the parameter does not exist.
 
 ```go
-func (*Ctx) Param(name string) string
+func Param(r *http.Request, name string) string
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
+| `r` | `*http.Request` | |
 | `name` | `string` | |
 
 **Returns:**
@@ -4932,13 +4598,12 @@ result := Param(/* parameters */)
 ParamInt returns the value of a path parameter as an int. Returns an error if the parameter does not exist or cannot be parsed.
 
 ```go
-func ParamInt(r *http.Request, name string) (int, error)
+func (*Ctx) ParamInt(name string) (int, error)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `*http.Request` | |
 | `name` | `string` | |
 
 **Returns:**
@@ -4984,13 +4649,12 @@ result := ParamInt64(/* parameters */)
 ParamUUID returns the value of a path parameter validated as a UUID. Returns an error if the parameter does not exist or is not a valid UUID format.
 
 ```go
-func ParamUUID(r *http.Request, name string) (string, error)
+func (*Ctx) ParamUUID(name string) (string, error)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `*http.Request` | |
 | `name` | `string` | |
 
 **Returns:**
@@ -5010,13 +4674,12 @@ result := ParamUUID(/* parameters */)
 Query returns the first value of a query parameter. Returns an empty string if the parameter does not exist.
 
 ```go
-func Query(r *http.Request, name string) string
+func (*Ctx) Query(name string) string
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `*http.Request` | |
 | `name` | `string` | |
 
 **Returns:**
@@ -5085,13 +4748,12 @@ result := QueryDefault(/* parameters */)
 QueryFloat64 returns the first value of a query parameter as a float64. Returns the default value if the parameter does not exist or cannot be parsed.
 
 ```go
-func QueryFloat64(r *http.Request, name string, defaultVal float64) float64
+func (*Ctx) QueryFloat64(name string, defaultVal float64) float64
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `*http.Request` | |
 | `name` | `string` | |
 | `defaultVal` | `float64` | |
 
@@ -5137,12 +4799,13 @@ result := QueryInt(/* parameters */)
 QueryInt64 returns the first value of a query parameter as an int64. Returns the default value if the parameter does not exist or cannot be parsed.
 
 ```go
-func (*Ctx) QueryInt64(name string, defaultVal int64) int64
+func QueryInt64(r *http.Request, name string, defaultVal int64) int64
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
+| `r` | `*http.Request` | |
 | `name` | `string` | |
 | `defaultVal` | `int64` | |
 
@@ -5310,12 +4973,13 @@ result := Text(/* parameters */)
 Unauthorized writes a 401 Unauthorized error response.
 
 ```go
-func (*Ctx) Unauthorized(message string) error
+func Unauthorized(w http.ResponseWriter, message string) error
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
+| `w` | `http.ResponseWriter` | |
 | `message` | `string` | |
 
 **Returns:**

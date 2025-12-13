@@ -31,31 +31,31 @@ With context:
 
 ## Constants
 
-### RequestIDKey
+**RequestIDKey**
 
 RequestID is a common field key for request IDs.
 
 
 ```go
-&{<nil> [RequestIDKey] <nil> [0xc00031ff60] <nil>}
+const RequestIDKey = "request_id"
 ```
 
-### TraceIDKey
+**TraceIDKey**
 
 TraceID is a common field key for trace IDs.
 
 
 ```go
-&{<nil> [TraceIDKey] <nil> [0xc00032c380] <nil>}
+const TraceIDKey = "trace_id"
 ```
 
-### UserIDKey
+**UserIDKey**
 
 UserID is a common field key for user IDs.
 
 
 ```go
-&{<nil> [UserIDKey] <nil> [0xc00032c820] <nil>}
+const UserIDKey = "user_id"
 ```
 
 ## Types
@@ -104,9 +104,7 @@ Builder provides a fluent/chainable API for building log entries. It accumulates
 ```go
 // Create a new Builder
 builder := Builder{
-    logger: &Logger{}{},
-    fields: [],
-    ctx: /* value */,
+
 }
 ```
 
@@ -114,35 +112,8 @@ builder := Builder{
 
 ```go
 type Builder struct {
-    logger *Logger
-    fields []Field
-    ctx context.Context
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| logger | `*Logger` |  |
-| fields | `[]Field` |  |
-| ctx | `context.Context` |  |
-
-### Constructor Functions
-
-### newBuilder
-
-newBuilder creates a new Builder.
-
-```go
-func newBuilder(l *Logger) *Builder
-```
-
-**Parameters:**
-- `l` (*Logger)
-
-**Returns:**
-- *Builder
 
 ## Methods
 
@@ -166,7 +137,7 @@ func (*Builder) Bool(key string, value bool) *Builder
 Debug logs at debug level.
 
 ```go
-func (*Builder) Debug(msg string)
+func (*ErrorBuilder) Debug(msg string)
 ```
 
 **Parameters:**
@@ -354,7 +325,7 @@ func (*Builder) Str(key, value string) *Builder
 Trace logs at trace level.
 
 ```go
-func (*Builder) Trace(msg string)
+func (*ErrorBuilder) Trace(msg string)
 ```
 
 **Parameters:**
@@ -368,7 +339,7 @@ func (*Builder) Trace(msg string)
 Uint adds a uint field.
 
 ```go
-func Uint(key string, value uint) Field
+func (*Builder) Uint(key string, value uint) *Builder
 ```
 
 **Parameters:**
@@ -376,14 +347,14 @@ func Uint(key string, value uint) Field
 - `value` (uint)
 
 **Returns:**
-- Field
+- *Builder
 
 ### Uint64
 
 Uint64 adds a uint64 field.
 
 ```go
-func Uint64(key string, value uint64) Field
+func (*Builder) Uint64(key string, value uint64) *Builder
 ```
 
 **Parameters:**
@@ -391,19 +362,18 @@ func Uint64(key string, value uint64) Field
 - `value` (uint64)
 
 **Returns:**
-- Field
+- *Builder
 
 ### Warn
 
 Warn logs at warn level.
 
 ```go
-func Warn(msg string, fields ...Field)
+func (*ErrorBuilder) Warn(msg string)
 ```
 
 **Parameters:**
 - `msg` (string)
-- `fields` (...Field)
 
 **Returns:**
   None
@@ -413,15 +383,14 @@ func Warn(msg string, fields ...Field)
 With adds a field to the builder using auto-detection.
 
 ```go
-func (*ErrorBuilder) With(key string, value any) *ErrorBuilder
+func With(fields ...Field) *Logger
 ```
 
 **Parameters:**
-- `key` (string)
-- `value` (any)
+- `fields` (...Field)
 
 **Returns:**
-- *ErrorBuilder
+- *Logger
 
 ### WithContext
 
@@ -470,29 +439,14 @@ func (*Builder) WithField(f Field) *Builder
 WithFields adds multiple typed fields to the builder.
 
 ```go
-func (*Builder) WithFields(fields ...Field) *Builder
+func (*ErrorBuilder) WithFields(fields ...Field) *ErrorBuilder
 ```
 
 **Parameters:**
 - `fields` (...Field)
 
 **Returns:**
-- *Builder
-
-### emit
-
-emit sends the log entry.
-
-```go
-func (*Builder) emit(level Level, msg string)
-```
-
-**Parameters:**
-- `level` (Level)
-- `msg` (string)
-
-**Returns:**
-  None
+- *ErrorBuilder
 
 ### CompositeSampler
 CompositeSampler combines multiple samplers with AND logic.
@@ -502,7 +456,7 @@ CompositeSampler combines multiple samplers with AND logic.
 ```go
 // Create a new CompositeSampler
 compositesampler := CompositeSampler{
-    samplers: [],
+
 }
 ```
 
@@ -510,15 +464,8 @@ compositesampler := CompositeSampler{
 
 ```go
 type CompositeSampler struct {
-    samplers []Sampler
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| samplers | `[]Sampler` |  |
 
 ### Constructor Functions
 
@@ -561,8 +508,7 @@ CountSampler logs every Nth occurrence.
 ```go
 // Create a new CountSampler
 countsampler := CountSampler{
-    n: 42,
-    counts: /* value */,
+
 }
 ```
 
@@ -570,17 +516,8 @@ countsampler := CountSampler{
 
 ```go
 type CountSampler struct {
-    n int
-    counts sync.Map
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| n | `int` |  |
-| counts | `sync.Map` | message -> *atomic.Int64 |
 
 ### Constructor Functions
 
@@ -709,9 +646,7 @@ ErrorBuilder provides a fluent API for logging errors.
 ```go
 // Create a new ErrorBuilder
 errorbuilder := ErrorBuilder{
-    logger: &Logger{}{},
-    err: error{},
-    fields: [],
+
 }
 ```
 
@@ -719,19 +654,8 @@ errorbuilder := ErrorBuilder{
 
 ```go
 type ErrorBuilder struct {
-    logger *Logger
-    err error
-    fields []Field
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| logger | `*Logger` |  |
-| err | `error` |  |
-| fields | `[]Field` |  |
 
 ## Methods
 
@@ -740,12 +664,11 @@ type ErrorBuilder struct {
 Debug logs at debug level if error is not nil.
 
 ```go
-func Debug(msg string, fields ...Field)
+func (*Builder) Debug(msg string)
 ```
 
 **Parameters:**
 - `msg` (string)
-- `fields` (...Field)
 
 **Returns:**
   None
@@ -755,7 +678,7 @@ func Debug(msg string, fields ...Field)
 Error logs at error level if error is not nil.
 
 ```go
-func (*Builder) Error(msg string)
+func (*ErrorBuilder) Error(msg string)
 ```
 
 **Parameters:**
@@ -769,11 +692,12 @@ func (*Builder) Error(msg string)
 Fatal logs at fatal level if error is not nil and exits.
 
 ```go
-func (*Builder) Fatal(msg string)
+func Fatal(msg string, fields ...Field)
 ```
 
 **Parameters:**
 - `msg` (string)
+- `fields` (...Field)
 
 **Returns:**
   None
@@ -797,12 +721,11 @@ func (*Builder) Info(msg string)
 Trace logs at trace level if error is not nil.
 
 ```go
-func Trace(msg string, fields ...Field)
+func (*Builder) Trace(msg string)
 ```
 
 **Parameters:**
 - `msg` (string)
-- `fields` (...Field)
 
 **Returns:**
   None
@@ -812,11 +735,12 @@ func Trace(msg string, fields ...Field)
 Warn logs at warn level if error is not nil.
 
 ```go
-func (*Builder) Warn(msg string)
+func Warn(msg string, fields ...Field)
 ```
 
 **Parameters:**
 - `msg` (string)
+- `fields` (...Field)
 
 **Returns:**
   None
@@ -826,28 +750,29 @@ func (*Builder) Warn(msg string)
 With adds a field to the error builder.
 
 ```go
-func With(fields ...Field) *Logger
+func (*Builder) With(key string, value any) *Builder
 ```
 
 **Parameters:**
-- `fields` (...Field)
+- `key` (string)
+- `value` (any)
 
 **Returns:**
-- *Logger
+- *Builder
 
 ### WithField
 
 WithField adds a typed field.
 
 ```go
-func (*ErrorBuilder) WithField(f Field) *ErrorBuilder
+func (*Builder) WithField(f Field) *Builder
 ```
 
 **Parameters:**
 - `f` (Field)
 
 **Returns:**
-- *ErrorBuilder
+- *Builder
 
 ### WithFields
 
@@ -871,9 +796,7 @@ ErrorHook collects errors for inspection.
 ```go
 // Create a new ErrorHook
 errorhook := ErrorHook{
-    errors: [],
-    mu: /* value */,
-    max: 42,
+
 }
 ```
 
@@ -881,19 +804,8 @@ errorhook := ErrorHook{
 
 ```go
 type ErrorHook struct {
-    errors []Entry
-    mu sync.Mutex
-    max int
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| errors | `[]Entry` |  |
-| mu | `sync.Mutex` |  |
-| max | `int` |  |
 
 ### Constructor Functions
 
@@ -1035,7 +947,7 @@ func Any(key string, value any) Field
 Bool creates a bool field.
 
 ```go
-func Bool(key string, value bool) Field
+func (*Builder) Bool(key string, value bool) *Builder
 ```
 
 **Parameters:**
@@ -1043,7 +955,7 @@ func Bool(key string, value bool) Field
 - `value` (bool)
 
 **Returns:**
-- Field
+- *Builder
 
 ### Bytes
 
@@ -1080,14 +992,14 @@ func Duration(key string, value time.Duration) Field
 Err creates an error field with key "error".
 
 ```go
-func (*Builder) Err(err error) *Builder
+func Err(err error) Field
 ```
 
 **Parameters:**
 - `err` (error)
 
 **Returns:**
-- *Builder
+- Field
 
 ### ErrChain
 
@@ -1403,7 +1315,7 @@ func Time(key string, value time.Time) Field
 Uint creates a uint field.
 
 ```go
-func (*Builder) Uint(key string, value uint) *Builder
+func Uint(key string, value uint) Field
 ```
 
 **Parameters:**
@@ -1411,7 +1323,7 @@ func (*Builder) Uint(key string, value uint) *Builder
 - `value` (uint)
 
 **Returns:**
-- *Builder
+- Field
 
 ### Uint16
 
@@ -1448,7 +1360,7 @@ func Uint32(key string, value uint32) Field
 Uint64 creates a uint64 field.
 
 ```go
-func Uint64(key string, value uint64) Field
+func (*Builder) Uint64(key string, value uint64) *Builder
 ```
 
 **Parameters:**
@@ -1456,7 +1368,7 @@ func Uint64(key string, value uint64) Field
 - `value` (uint64)
 
 **Returns:**
-- Field
+- *Builder
 
 ### Uint8
 
@@ -1484,36 +1396,6 @@ func V(key string, value any) Field
 **Parameters:**
 - `key` (string)
 - `value` (any)
-
-**Returns:**
-- Field
-
-### extractStructFields
-
-extractStructFields extracts fields from a struct value.
-
-```go
-func extractStructFields(prefix string, val reflect.Value) []Field
-```
-
-**Parameters:**
-- `prefix` (string)
-- `val` (reflect.Value)
-
-**Returns:**
-- []Field
-
-### valueToField
-
-valueToField converts a reflect.Value to a Field.
-
-```go
-func valueToField(key string, val reflect.Value) Field
-```
-
-**Parameters:**
-- `key` (string)
-- `val` (reflect.Value)
 
 **Returns:**
 - Field
@@ -1573,7 +1455,7 @@ FileHook writes entries to a file.
 ```go
 // Create a new FileHook
 filehook := FileHook{
-    file: &/* value */{},
+
 }
 ```
 
@@ -1582,7 +1464,6 @@ filehook := FileHook{
 ```go
 type FileHook struct {
     *WriterHook
-    file *os.File
 }
 ```
 
@@ -1591,7 +1472,6 @@ type FileHook struct {
 | Field | Type | Description |
 | ----- | ---- | ----------- |
 | **WriterHook | `*WriterHook` |  |
-| file | `*os.File` |  |
 
 ### Constructor Functions
 
@@ -1636,8 +1516,7 @@ FilterHook conditionally fires another hook.
 ```go
 // Create a new FilterHook
 filterhook := FilterHook{
-    hook: Hook{},
-    filter: /* value */,
+
 }
 ```
 
@@ -1645,17 +1524,8 @@ filterhook := FilterHook{
 
 ```go
 type FilterHook struct {
-    hook Hook
-    filter func(*Entry) bool
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| hook | `Hook` |  |
-| filter | `func(*Entry) bool` |  |
 
 ### Constructor Functions
 
@@ -1712,8 +1582,7 @@ FirstNSampler logs only the first N occurrences.
 ```go
 // Create a new FirstNSampler
 firstnsampler := FirstNSampler{
-    n: 42,
-    counts: /* value */,
+
 }
 ```
 
@@ -1721,17 +1590,8 @@ firstnsampler := FirstNSampler{
 
 ```go
 type FirstNSampler struct {
-    n int64
-    counts sync.Map
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| n | `int64` |  |
-| counts | `sync.Map` | message -> *atomic.Int64 |
 
 ### Constructor Functions
 
@@ -1806,8 +1666,7 @@ FuncHook wraps a function as a hook.
 ```go
 // Create a new FuncHook
 funchook := FuncHook{
-    fn: /* value */,
-    levels: [],
+
 }
 ```
 
@@ -1815,17 +1674,8 @@ funchook := FuncHook{
 
 ```go
 type FuncHook struct {
-    fn func(*Entry)
-    levels []Level
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| fn | `func(*Entry)` |  |
-| levels | `[]Level` |  |
 
 ### Constructor Functions
 
@@ -1969,7 +1819,7 @@ type JSONFormatter struct {
 Format formats an entry as JSON.
 
 ```go
-func (*NamedFormatter) Format(entry *Entry) ([]byte, error)
+func (*NoopFormatter) Format(entry *Entry) ([]byte, error)
 ```
 
 **Parameters:**
@@ -1978,36 +1828,6 @@ func (*NamedFormatter) Format(entry *Entry) ([]byte, error)
 **Returns:**
 - []byte
 - error
-
-### writeJSONString
-
-writeJSONString writes a JSON-encoded string.
-
-```go
-func (*JSONFormatter) writeJSONString(buf *bytes.Buffer, s string)
-```
-
-**Parameters:**
-- `buf` (*bytes.Buffer)
-- `s` (string)
-
-**Returns:**
-  None
-
-### writeJSONValue
-
-writeJSONValue writes a JSON-encoded field value.
-
-```go
-func (*JSONFormatter) writeJSONValue(buf *bytes.Buffer, field Field)
-```
-
-**Parameters:**
-- `buf` (*bytes.Buffer)
-- `field` (Field)
-
-**Returns:**
-  None
 
 ### Level
 Level represents a log level.
@@ -2109,8 +1929,7 @@ LevelHook fires only for specific levels.
 ```go
 // Create a new LevelHook
 levelhook := LevelHook{
-    hook: Hook{},
-    levels: map[],
+
 }
 ```
 
@@ -2118,17 +1937,8 @@ levelhook := LevelHook{
 
 ```go
 type LevelHook struct {
-    hook Hook
-    levels map[Level]bool
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| hook | `Hook` |  |
-| levels | `map[Level]bool` |  |
 
 ### Constructor Functions
 
@@ -2185,8 +1995,7 @@ LevelSampler applies different samplers per level.
 ```go
 // Create a new LevelSampler
 levelsampler := LevelSampler{
-    samplers: map[],
-    fallback: Sampler{},
+
 }
 ```
 
@@ -2194,17 +2003,8 @@ levelsampler := LevelSampler{
 
 ```go
 type LevelSampler struct {
-    samplers map[Level]Sampler
-    fallback Sampler
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| samplers | `map[Level]Sampler` |  |
-| fallback | `Sampler` |  |
 
 ### Constructor Functions
 
@@ -2261,21 +2061,7 @@ Logger is the main logging interface.
 ```go
 // Create a new Logger
 logger := Logger{
-    output: /* value */,
-    level: /* value */,
-    formatter: Formatter{},
-    hooks: [],
-    fields: [],
-    callerDepth: 42,
-    addCaller: true,
-    addStack: true,
-    async: true,
-    asyncCh: /* value */,
-    asyncWg: /* value */,
-    mu: /* value */,
-    entryPool: &/* value */{},
-    closed: /* value */,
-    sampler: Sampler{},
+
 }
 ```
 
@@ -2283,43 +2069,8 @@ logger := Logger{
 
 ```go
 type Logger struct {
-    output io.Writer
-    level atomic.Int32
-    formatter Formatter
-    hooks []Hook
-    fields []Field
-    callerDepth int
-    addCaller bool
-    addStack bool
-    async bool
-    asyncCh chan *Entry
-    asyncWg sync.WaitGroup
-    mu sync.RWMutex
-    entryPool *sync.Pool
-    closed atomic.Bool
-    sampler Sampler
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| output | `io.Writer` |  |
-| level | `atomic.Int32` |  |
-| formatter | `Formatter` |  |
-| hooks | `[]Hook` |  |
-| fields | `[]Field` |  |
-| callerDepth | `int` |  |
-| addCaller | `bool` |  |
-| addStack | `bool` |  |
-| async | `bool` |  |
-| asyncCh | `chan *Entry` |  |
-| asyncWg | `sync.WaitGroup` |  |
-| mu | `sync.RWMutex` |  |
-| entryPool | `*sync.Pool` |  |
-| closed | `atomic.Bool` |  |
-| sampler | `Sampler` |  |
 
 ### Constructor Functions
 
@@ -2398,7 +2149,7 @@ func New(opts ...Option) *Logger
 With creates a child of the default logger with additional fields.
 
 ```go
-func (*Builder) With(key string, value any) *Builder
+func (*ErrorBuilder) With(key string, value any) *ErrorBuilder
 ```
 
 **Parameters:**
@@ -2406,7 +2157,7 @@ func (*Builder) With(key string, value any) *Builder
 - `value` (any)
 
 **Returns:**
-- *Builder
+- *ErrorBuilder
 
 ## Methods
 
@@ -2637,7 +2388,7 @@ func (*Logger) F(keyvals ...any) *Builder
 Fatal logs at fatal level and exits.
 
 ```go
-func (*Builder) Fatal(msg string)
+func (*ErrorBuilder) Fatal(msg string)
 ```
 
 **Parameters:**
@@ -2722,12 +2473,11 @@ func (*Logger) IfErr(err error) *ErrorBuilder
 Info logs at info level.
 
 ```go
-func Info(msg string, fields ...Field)
+func (*ErrorBuilder) Info(msg string)
 ```
 
 **Parameters:**
 - `msg` (string)
-- `fields` (...Field)
 
 **Returns:**
   None
@@ -3197,137 +2947,6 @@ func (*Logger) WrapErrLevel(level Level, err error, msg string, fields ...Field)
 **Returns:**
 - error
 
-### asyncWorker
-
-asyncWorker processes async log entries.
-
-```go
-func (*Logger) asyncWorker()
-```
-
-**Parameters:**
-  None
-
-**Returns:**
-  None
-
-### clone
-
-clone creates a shallow copy of the logger.
-
-```go
-func (*Logger) clone() *Logger
-```
-
-**Parameters:**
-  None
-
-**Returns:**
-- *Logger
-
-### getEntry
-
-getEntry gets an entry from the pool.
-
-```go
-func (*Logger) getEntry() *Entry
-```
-
-**Parameters:**
-  None
-
-**Returns:**
-- *Entry
-
-### getName
-
-getName returns the logger's name from its default fields.
-
-```go
-func (*Logger) getName() string
-```
-
-**Parameters:**
-  None
-
-**Returns:**
-- string
-
-### log
-
-log logs a message at the given level.
-
-```go
-func (*Logger) log(level Level, msg string, fields []Field)
-```
-
-**Parameters:**
-- `level` (Level)
-- `msg` (string)
-- `fields` ([]Field)
-
-**Returns:**
-  None
-
-### logContext
-
-logContext logs with context.
-
-```go
-func (*Logger) logContext(ctx context.Context, level Level, msg string, fields []Field)
-```
-
-**Parameters:**
-- `ctx` (context.Context)
-- `level` (Level)
-- `msg` (string)
-- `fields` ([]Field)
-
-**Returns:**
-  None
-
-### releaseEntry
-
-releaseEntry returns an entry to the pool.
-
-```go
-func (*Logger) releaseEntry(e *Entry)
-```
-
-**Parameters:**
-- `e` (*Entry)
-
-**Returns:**
-  None
-
-### setName
-
-setName sets the logger's name in its default fields.
-
-```go
-func (*Logger) setName(name string)
-```
-
-**Parameters:**
-- `name` (string)
-
-**Returns:**
-  None
-
-### writeEntry
-
-writeEntry formats and writes the entry.
-
-```go
-func (*Logger) writeEntry(e *Entry)
-```
-
-**Parameters:**
-- `e` (*Entry)
-
-**Returns:**
-  None
-
 ### MetricsHook
 MetricsHook tracks log counts by level.
 
@@ -3336,8 +2955,7 @@ MetricsHook tracks log counts by level.
 ```go
 // Create a new MetricsHook
 metricshook := MetricsHook{
-    counts: map[],
-    mu: /* value */,
+
 }
 ```
 
@@ -3345,17 +2963,8 @@ metricshook := MetricsHook{
 
 ```go
 type MetricsHook struct {
-    counts map[Level]uint64
-    mu sync.RWMutex
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| counts | `map[Level]uint64` |  |
-| mu | `sync.RWMutex` |  |
 
 ### Constructor Functions
 
@@ -3484,7 +3093,7 @@ type NamedFormatter struct {
 Format formats an entry, prefixing with the logger name if present.
 
 ```go
-func (*NamedFormatter) Format(entry *Entry) ([]byte, error)
+func (*NoopFormatter) Format(entry *Entry) ([]byte, error)
 ```
 
 **Parameters:**
@@ -3556,7 +3165,7 @@ type NoopFormatter struct {
 Format returns nil.
 
 ```go
-func (*NamedFormatter) Format(entry *Entry) ([]byte, error)
+func (*NoopFormatter) Format(entry *Entry) ([]byte, error)
 ```
 
 **Parameters:**
@@ -3574,8 +3183,7 @@ OncePerSampler logs a message only once per duration.
 ```go
 // Create a new OncePerSampler
 oncepersampler := OncePerSampler{
-    period: /* value */,
-    lastSeen: /* value */,
+
 }
 ```
 
@@ -3583,17 +3191,8 @@ oncepersampler := OncePerSampler{
 
 ```go
 type OncePerSampler struct {
-    period time.Duration
-    lastSeen sync.Map
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| period | `time.Duration` |  |
-| lastSeen | `sync.Map` | message -> int64 (UnixNano) |
 
 ### Constructor Functions
 
@@ -3850,20 +3449,6 @@ func (*NamedFormatter) Format(entry *Entry) ([]byte, error)
 - []byte
 - error
 
-### levelEmoji
-
-levelEmoji returns an emoji for the log level.
-
-```go
-func (*PrettyFormatter) levelEmoji(level Level) string
-```
-
-**Parameters:**
-- `level` (Level)
-
-**Returns:**
-- string
-
 ### RandomSampler
 RandomSampler samples a percentage of logs.
 
@@ -3872,8 +3457,7 @@ RandomSampler samples a percentage of logs.
 ```go
 // Create a new RandomSampler
 randomsampler := RandomSampler{
-    threshold: 42,
-    counter: /* value */,
+
 }
 ```
 
@@ -3881,17 +3465,8 @@ randomsampler := RandomSampler{
 
 ```go
 type RandomSampler struct {
-    threshold uint32
-    counter atomic.Uint64
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| threshold | `uint32` |  |
-| counter | `atomic.Uint64` |  |
 
 ### Constructor Functions
 
@@ -3934,11 +3509,7 @@ RateSampler limits logs to a certain rate per message.
 ```go
 // Create a new RateSampler
 ratesampler := RateSampler{
-    rate: 42,
-    burst: 42,
-    window: /* value */,
-    counts: /* value */,
-    cleanup: /* value */,
+
 }
 ```
 
@@ -3946,23 +3517,8 @@ ratesampler := RateSampler{
 
 ```go
 type RateSampler struct {
-    rate int
-    burst int
-    window time.Duration
-    counts sync.Map
-    cleanup time.Duration
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| rate | `int` | max logs per interval |
-| burst | `int` | initial burst allowance |
-| window | `time.Duration` | time window |
-| counts | `sync.Map` | message -> *rateBucket |
-| cleanup | `time.Duration` | cleanup interval for old entries |
 
 ### Constructor Functions
 
@@ -4101,7 +3657,7 @@ type TextFormatter struct {
 Format formats an entry as text.
 
 ```go
-func (*NoopFormatter) Format(entry *Entry) ([]byte, error)
+func (*NamedFormatter) Format(entry *Entry) ([]byte, error)
 ```
 
 **Parameters:**
@@ -4111,20 +3667,6 @@ func (*NoopFormatter) Format(entry *Entry) ([]byte, error)
 - []byte
 - error
 
-### needsQuoting
-
-needsQuoting returns true if the value needs quoting.
-
-```go
-func (*TextFormatter) needsQuoting(value string) bool
-```
-
-**Parameters:**
-- `value` (string)
-
-**Returns:**
-- bool
-
 ### WriterHook
 WriterHook writes entries to an io.Writer.
 
@@ -4133,10 +3675,7 @@ WriterHook writes entries to an io.Writer.
 ```go
 // Create a new WriterHook
 writerhook := WriterHook{
-    writer: /* value */,
-    formatter: Formatter{},
-    levels: [],
-    mu: /* value */,
+
 }
 ```
 
@@ -4144,21 +3683,8 @@ writerhook := WriterHook{
 
 ```go
 type WriterHook struct {
-    writer io.Writer
-    formatter Formatter
-    levels []Level
-    mu sync.Mutex
 }
 ```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| writer | `io.Writer` |  |
-| formatter | `Formatter` |  |
-| levels | `[]Level` |  |
-| mu | `sync.Mutex` |  |
 
 ### Constructor Functions
 
@@ -4334,7 +3860,7 @@ result := CtxWarn(/* parameters */)
 Debug logs at debug level using the default logger.
 
 ```go
-func (*ErrorBuilder) Debug(msg string)
+func (*Builder) Debug(msg string)
 ```
 
 **Parameters:**
@@ -4424,13 +3950,14 @@ result := Errorf(/* parameters */)
 Fatal logs at fatal level using the default logger and exits.
 
 ```go
-func (*Builder) Fatal(msg string)
+func Fatal(msg string, fields ...Field)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `msg` | `string` | |
+| `fields` | `...Field` | |
 
 **Returns:**
 None
@@ -4469,7 +3996,7 @@ result := Fatalf(/* parameters */)
 Info logs at info level using the default logger.
 
 ```go
-func (*Builder) Info(msg string)
+func (*ErrorBuilder) Info(msg string)
 ```
 
 **Parameters:**
@@ -4763,7 +4290,7 @@ result := Tracef(/* parameters */)
 Warn logs at warn level using the default logger.
 
 ```go
-func (*Builder) Warn(msg string)
+func (*ErrorBuilder) Warn(msg string)
 ```
 
 **Parameters:**

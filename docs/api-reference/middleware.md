@@ -11,13 +11,13 @@ Package middleware provides HTTP middleware for the Helix framework.
 
 ## Constants
 
-### RequestIDHeader
+**RequestIDHeader**
 
 RequestIDHeader is the default header name for the request ID.
 
 
 ```go
-&{<nil> [RequestIDHeader] <nil> [0xc0002db600] <nil>}
+const RequestIDHeader = "X-Request-ID"
 ```
 
 ## Types
