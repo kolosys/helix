@@ -145,4 +145,3 @@ func Print(args ...any) { defaultLogger.Print(args...) }
 
 // Println logs a message at info level.
 func Println(args ...any) { defaultLogger.Println(args...) }
-

@@ -1649,4 +1649,3 @@ func BenchmarkCacheMiddleware(b *testing.B) {
 		handler.ServeHTTP(rec, req)
 	}
 }
-

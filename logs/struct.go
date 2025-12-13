@@ -11,8 +11,8 @@ import (
 var structFieldCache sync.Map // map[reflect.Type][]structFieldInfo
 
 type structFieldInfo struct {
-	index    []int
-	name     string
+	index     []int
+	name      string
 	omitempty bool
 }
 
@@ -155,8 +155,8 @@ func buildStructFieldInfos(typ reflect.Type) []structFieldInfo {
 		}
 
 		infos = append(infos, structFieldInfo{
-			index:    sf.Index,
-			name:     name,
+			index:     sf.Index,
+			name:      name,
 			omitempty: omitempty,
 		})
 	}
@@ -270,4 +270,3 @@ func Object(key string, v any) Field {
 
 	return Any(key, v)
 }
-

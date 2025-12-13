@@ -260,4 +260,3 @@ func (h *FuncHook) Fire(entry *Entry) {
 func (h *FuncHook) Levels() []Level {
 	return h.levels
 }
-

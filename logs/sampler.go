@@ -226,4 +226,3 @@ type NeverSampler struct{}
 func (s *NeverSampler) Sample(level Level, msg string) bool {
 	return false
 }
-

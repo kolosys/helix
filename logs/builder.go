@@ -187,4 +187,3 @@ func (l *Logger) Ctx(ctx context.Context) *Builder {
 	b.ctx = ctx
 	return b
 }
-

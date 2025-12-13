@@ -208,12 +208,12 @@ type JSONFormatter struct {
 
 // jsonEntry is the structure for JSON encoding.
 type jsonEntry struct {
-	Time    string         `json:"time,omitempty"`
-	Level   string         `json:"level"`
-	Msg     string         `json:"msg"`
-	Caller  string         `json:"caller,omitempty"`
-	Stack   string         `json:"stack,omitempty"`
-	Fields  map[string]any `json:"-"`
+	Time   string         `json:"time,omitempty"`
+	Level  string         `json:"level"`
+	Msg    string         `json:"msg"`
+	Caller string         `json:"caller,omitempty"`
+	Stack  string         `json:"stack,omitempty"`
+	Fields map[string]any `json:"-"`
 }
 
 // Format formats an entry as JSON.
@@ -482,4 +482,3 @@ type NoopFormatter struct{}
 func (f *NoopFormatter) Format(entry *Entry) ([]byte, error) {
 	return nil, nil
 }
-

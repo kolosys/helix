@@ -130,4 +130,3 @@ func (tw *timeoutWriter) Write(b []byte) (int, error) {
 	tw.written = true
 	return tw.ResponseWriter.Write(b)
 }
-

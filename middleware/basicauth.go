@@ -104,4 +104,3 @@ func secureCompare(a, b string) bool {
 	bHash := sha256.Sum256([]byte(b))
 	return subtle.ConstantTimeCompare(aHash[:], bHash[:]) == 1
 }
-

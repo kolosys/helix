@@ -244,4 +244,3 @@ func (l *Logger) CheckErr(err error, msg string, fields ...Field) bool {
 	l.log(ErrorLevel, msg, allFields)
 	return true
 }
-

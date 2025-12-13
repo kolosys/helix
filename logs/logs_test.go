@@ -1183,4 +1183,3 @@ func BenchmarkPrintf(b *testing.B) {
 		log.Infof("user %s with id %d", "john", 123)
 	}
 }
-

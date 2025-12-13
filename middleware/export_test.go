@@ -6,4 +6,3 @@ import "net/http"
 func NewResponseWriter(w http.ResponseWriter) *responseWriter {
 	return newResponseWriter(w)
 }
-

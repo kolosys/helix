@@ -86,4 +86,3 @@ func (rw *responseWriter) Push(target string, opts *http.PushOptions) error {
 	}
 	return http.ErrNotSupported
 }
-

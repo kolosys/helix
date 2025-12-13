@@ -233,4 +233,3 @@ func TestBundleComposition(t *testing.T) {
 		t.Errorf("expected status 200, got %d", rec.Code)
 	}
 }
-

@@ -77,4 +77,3 @@ func Secure(rate float64, burst int) []Middleware {
 		RateLimit(rate, burst),
 	}
 }
-

@@ -165,4 +165,3 @@ func ETagFromVersion(version int64, weak bool) string {
 	}
 	return etag
 }
-

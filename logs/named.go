@@ -175,4 +175,3 @@ func (l *Logger) NameParts() []string {
 	}
 	return strings.Split(name, ".")
 }
-

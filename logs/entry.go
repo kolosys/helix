@@ -41,4 +41,3 @@ func (e *Entry) GetString(key string) string {
 	}
 	return ""
 }
-
