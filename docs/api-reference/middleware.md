@@ -888,6 +888,21 @@ func Production() []Middleware
 **Returns:**
 - []Middleware
 
+### ProfileMiddleware
+
+ProfileMiddleware wraps a middleware with profiling instrumentation.
+
+```go
+func ProfileMiddleware(name string, mw Middleware) Middleware
+```
+
+**Parameters:**
+- `name` (string)
+- `mw` (Middleware)
+
+**Returns:**
+- Middleware
+
 ### RateLimit
 
 RateLimit returns a rate limiting middleware with the given rate and burst.
@@ -1031,6 +1046,41 @@ func Web() []Middleware
 
 **Returns:**
 - []Middleware
+
+### MiddlewareProfile
+MiddlewareProfile contains profiling information for a middleware.
+
+#### Example Usage
+
+```go
+// Create a new MiddlewareProfile
+middlewareprofile := MiddlewareProfile{
+    Name: "example",
+    Duration: /* value */,
+    Allocs: 42,
+    Bytes: 42,
+}
+```
+
+#### Type Definition
+
+```go
+type MiddlewareProfile struct {
+    Name string
+    Duration time.Duration
+    Allocs uint64
+    Bytes uint64
+}
+```
+
+### Fields
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| Name | `string` |  |
+| Duration | `time.Duration` |  |
+| Allocs | `uint64` |  |
+| Bytes | `uint64` |  |
 
 ### RateLimitConfig
 RateLimitConfig configures the RateLimit middleware.
@@ -1377,6 +1427,28 @@ func ETagFromVersion(version int64, weak bool) string
 result := ETagFromVersion(/* parameters */)
 ```
 
+### GetProfiles
+GetProfiles returns all middleware profiles.
+
+```go
+func GetProfiles() map[string]*MiddlewareProfile
+```
+
+**Parameters:**
+None
+
+**Returns:**
+| Type | Description |
+|------|-------------|
+| `map[string]*MiddlewareProfile` | |
+
+**Example:**
+
+```go
+// Example usage of GetProfiles
+result := GetProfiles(/* parameters */)
+```
+
 ### GetRequestID
 GetRequestID retrieves the request ID from the context. Returns an empty string if no request ID is set.
 
@@ -1423,6 +1495,26 @@ func GetRequestIDFromRequest(r *http.Request) string
 ```go
 // Example usage of GetRequestIDFromRequest
 result := GetRequestIDFromRequest(/* parameters */)
+```
+
+### ResetProfiles
+ResetProfiles clears all profiling data.
+
+```go
+func ResetProfiles()
+```
+
+**Parameters:**
+None
+
+**Returns:**
+None
+
+**Example:**
+
+```go
+// Example usage of ResetProfiles
+result := ResetProfiles(/* parameters */)
 ```
 
 ### SetCacheControl
