@@ -19,8 +19,8 @@ type MiddlewareProfile struct {
 
 // middlewareProfiler tracks profiling data for middleware.
 type middlewareProfiler struct {
-	mu        sync.RWMutex
-	profiles  map[string]*MiddlewareProfile
+	mu         sync.RWMutex
+	profiles   map[string]*MiddlewareProfile
 	totalCalls int64
 }
 
@@ -87,4 +87,3 @@ func ResetProfiles() {
 	profiler.profiles = make(map[string]*MiddlewareProfile)
 	profiler.totalCalls = 0
 }
-
