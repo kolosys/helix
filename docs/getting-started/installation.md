@@ -6,7 +6,7 @@ This guide will help you install and set up helix in your Go project.
 
 Before installing helix, ensure you have:
 
-- **Go ** or later installed
+- **Go 1.24+** or later installed
 - A Go module initialized in your project (run `go mod init` if needed)
 - Access to the GitHub repository (for private repositories)
 
@@ -176,4 +176,3 @@ Now that you have helix installed, check out the [Quick Start Guide](quick-start
 - [Quick Start Guide](quick-start.md)
 - [API Reference](../api-reference/)
 - [Examples](../examples/README.md)
-

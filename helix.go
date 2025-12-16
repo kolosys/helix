@@ -23,8 +23,7 @@ const (
 	// Version of Hexix
 	Version = "0.1.0"
 	website = "https://github.com/kolosys/helix"
-	// http://patorjk.com/software/taag/#p=display&f=Small%20Slant&t=Echo
-	banner = `
+	banner  = `
     __ __    ___     
    / // /__ / (_)_ __
   / _  / -_) / /\ \ /
