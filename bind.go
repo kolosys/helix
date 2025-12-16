@@ -107,7 +107,8 @@ func Bind[T any](r *http.Request) (T, error) {
 
 	// Bind JSON body if there are JSON fields
 	if hasJSONFields && r.Body != nil && r.ContentLength != 0 {
-		if err := json.NewDecoder(r.Body).Decode(&result); err != nil && err != io.EOF {
+		decoder := json.NewDecoder(r.Body)
+		if err := decoder.Decode(&result); err != nil && err != io.EOF {
 			return result, fmt.Errorf("%w: %v", ErrInvalidJSON, err)
 		}
 	}
@@ -123,7 +124,8 @@ func BindJSON[T any](r *http.Request) (T, error) {
 		return result, ErrInvalidJSON
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&result); err != nil {
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&result); err != nil {
 		return result, fmt.Errorf("%w: %v", ErrInvalidJSON, err)
 	}
 

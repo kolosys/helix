@@ -345,7 +345,7 @@ func formatLogLine(format string, ctx *logContext) string {
 		{":date", time.Now().Format(config.TimeFormat)},
 		{":referrer", r.Referer()},
 		{":user-agent", r.UserAgent()},
-		{":http-version", fmt.Sprintf("%d.%d", r.ProtoMajor, r.ProtoMinor)},
+		{":http-version", formatHTTPVersion(r.ProtoMajor, r.ProtoMinor)},
 		{":request-id", r.Header.Get(RequestIDHeader)},
 		{":content-type", r.Header.Get("Content-Type")},
 		{":content-length", strconv.FormatInt(r.ContentLength, 10)},
@@ -523,14 +523,27 @@ func colorizeMethod(method string) string {
 }
 
 // formatDuration formats a duration for logging.
+// Optimized to use strconv instead of fmt.Sprintf to reduce allocations.
 func formatDuration(d time.Duration) string {
 	if d < time.Millisecond {
-		return fmt.Sprintf("%.2fµs", float64(d.Microseconds()))
+		us := d.Microseconds()
+		buf := make([]byte, 0, 16)
+		buf = strconv.AppendFloat(buf, float64(us), 'f', 2, 64)
+		buf = append(buf, 'µ', 's')
+		return string(buf)
 	}
 	if d < time.Second {
-		return fmt.Sprintf("%.2fms", float64(d.Microseconds())/1000)
+		ms := float64(d.Microseconds()) / 1000
+		buf := make([]byte, 0, 16)
+		buf = strconv.AppendFloat(buf, ms, 'f', 2, 64)
+		buf = append(buf, 'm', 's')
+		return string(buf)
 	}
-	return fmt.Sprintf("%.2fs", d.Seconds())
+	s := d.Seconds()
+	buf := make([]byte, 0, 16)
+	buf = strconv.AppendFloat(buf, s, 'f', 2, 64)
+	buf = append(buf, 's')
+	return string(buf)
 }
 
 // formatSize formats a byte size for logging.
@@ -539,6 +552,15 @@ func formatSize(size int) string {
 		return "-"
 	}
 	return strconv.Itoa(size)
+}
+
+// formatHTTPVersion formats HTTP version without fmt.Sprintf to reduce allocations.
+func formatHTTPVersion(major, minor int) string {
+	buf := make([]byte, 0, 8)
+	buf = strconv.AppendInt(buf, int64(major), 10)
+	buf = append(buf, '.')
+	buf = strconv.AppendInt(buf, int64(minor), 10)
+	return string(buf)
 }
 
 // getRemoteAddr gets the remote address from the request.

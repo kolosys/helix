@@ -14,10 +14,12 @@ type RouteInfo struct {
 
 // Router handles HTTP request routing.
 type Router struct {
-	trees      map[string]*routeNode // method -> root
-	routes     []RouteInfo           // registered routes for introspection
-	mu         sync.RWMutex
-	paramsPool sync.Pool
+	trees       map[string]*routeNode    // method -> root
+	routes      []RouteInfo              // registered routes for introspection
+	mu          sync.RWMutex             // For tree map access
+	methodLocks map[string]*sync.RWMutex // Per-method locks for reduced contention
+	methodMu    sync.Mutex               // For methodLocks map access
+	paramsPool  sync.Pool
 }
 
 // routeNode represents a node in the routing tree.
@@ -82,20 +84,27 @@ func (r *Router) Handle(method, pattern string, handler http.HandlerFunc) {
 		panic("helix: handler must not be nil")
 	}
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	// Use per-method lock for writes
+	methodLock := r.getMethodLock(method)
+	methodLock.Lock()
+	defer methodLock.Unlock()
 
+	// Also need to lock tree map for initial access
+	r.mu.Lock()
 	root := r.trees[method]
 	if root == nil {
 		root = &routeNode{}
 		r.trees[method] = root
 	}
+	r.mu.Unlock()
 
-	// Track the route for introspection
+	// Track the route for introspection (needs global lock)
+	r.mu.Lock()
 	r.routes = append(r.routes, RouteInfo{
 		Method:  method,
 		Pattern: pattern,
 	})
+	r.mu.Unlock()
 
 	// Parse pattern into segments
 	segments := parsePattern(pattern)
@@ -201,13 +210,34 @@ func (r *Router) addRoute(n *routeNode, segments []segment, handler http.Handler
 	r.addRoute(child, remaining, handler)
 }
 
+// getMethodLock returns the RWMutex for the given HTTP method.
+// Locks are created lazily on first access.
+func (r *Router) getMethodLock(method string) *sync.RWMutex {
+	r.methodMu.Lock()
+	defer r.methodMu.Unlock()
+
+	if r.methodLocks == nil {
+		r.methodLocks = make(map[string]*sync.RWMutex)
+	}
+
+	if lock, ok := r.methodLocks[method]; ok {
+		return lock
+	}
+
+	lock := &sync.RWMutex{}
+	r.methodLocks[method] = lock
+	return lock
+}
+
 // ServeHTTP implements http.Handler.
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	path := req.URL.Path
 
-	r.mu.RLock()
+	// Use per-method lock for reduced contention
+	methodLock := r.getMethodLock(req.Method)
+	methodLock.RLock()
 	root := r.trees[req.Method]
-	r.mu.RUnlock()
+	methodLock.RUnlock()
 
 	if root == nil {
 		http.NotFound(w, req)

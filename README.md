@@ -1,10 +1,10 @@
 # Helix 🧬
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go" alt="Go Version">
-  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">
-  <img src="https://img.shields.io/badge/Zero-Dependencies-green.svg" alt="Zero Dependencies">
-</p>
+![GoVersion](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![Zero Dependencies](https://img.shields.io/badge/Zero-Dependencies-green.svg)
+[![Go Reference](https://pkg.go.dev/badge/github.com/kolosys/helix.svg)](https://pkg.go.dev/github.com/kolosys/helix)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kolosys/helix)](https://goreportcard.com/report/github.com/kolosys/helix)
 
 ```
     __ __    ___

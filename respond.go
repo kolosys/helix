@@ -16,13 +16,15 @@ var bufferPool = sync.Pool{
 }
 
 // JSON writes a JSON response with the given status code.
-// Uses a pooled buffer for zero-allocation in the hot path.
+// Uses pooled buffer for zero-allocation in the hot path.
 func JSON(w http.ResponseWriter, status int, v any) error {
 	buf := bufferPool.Get().(*bytes.Buffer)
 	buf.Reset()
 	defer bufferPool.Put(buf)
 
-	if err := json.NewEncoder(buf).Encode(v); err != nil {
+	encoder := json.NewEncoder(buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(v); err != nil {
 		return err
 	}
 
@@ -40,6 +42,7 @@ func JSONPretty(w http.ResponseWriter, status int, v any, indent string) error {
 
 	encoder := json.NewEncoder(buf)
 	encoder.SetIndent("", indent)
+	encoder.SetEscapeHTML(false)
 	if err := encoder.Encode(v); err != nil {
 		return err
 	}

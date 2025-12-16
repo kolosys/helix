@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 )
 
 // Problem represents an RFC 7807 Problem Details for HTTP APIs.
@@ -141,13 +142,22 @@ func WriteProblem(w http.ResponseWriter, p Problem) error {
 	return jsonEncode(w, p)
 }
 
+// Problem pool for reusing Problem structs to reduce allocations.
+var problemPool = sync.Pool{
+	New: func() any {
+		return &Problem{}
+	},
+}
+
 // jsonEncode encodes value to JSON without modifying Content-Type.
 func jsonEncode(w http.ResponseWriter, v any) error {
 	buf := bufferPool.Get().(*bytes.Buffer)
 	buf.Reset()
 	defer bufferPool.Put(buf)
 
-	if err := json.NewEncoder(buf).Encode(v); err != nil {
+	encoder := json.NewEncoder(buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(v); err != nil {
 		return err
 	}
 
