@@ -122,7 +122,7 @@ type Builder struct {
 Bool adds a bool field.
 
 ```go
-func Bool(key string, value bool) Field
+func (*Builder) Bool(key string, value bool) *Builder
 ```
 
 **Parameters:**
@@ -130,7 +130,7 @@ func Bool(key string, value bool) Field
 - `value` (bool)
 
 **Returns:**
-- Field
+- *Builder
 
 ### Debug
 
@@ -151,14 +151,14 @@ func (*Builder) Debug(msg string)
 Err adds an error field with key "error".
 
 ```go
-func Err(err error) Field
+func (*Builder) Err(err error) *Builder
 ```
 
 **Parameters:**
 - `err` (error)
 
 **Returns:**
-- Field
+- *Builder
 
 ### Error
 
@@ -179,12 +179,11 @@ func (*Builder) Error(msg string)
 Fatal logs at fatal level and exits.
 
 ```go
-func Fatal(msg string, fields ...Field)
+func (*ErrorBuilder) Fatal(msg string)
 ```
 
 **Parameters:**
 - `msg` (string)
-- `fields` (...Field)
 
 **Returns:**
   None
@@ -209,7 +208,7 @@ func (*Builder) Float64(key string, value float64) *Builder
 Info logs at info level.
 
 ```go
-func (*Builder) Info(msg string)
+func (*ErrorBuilder) Info(msg string)
 ```
 
 **Parameters:**
@@ -223,7 +222,7 @@ func (*Builder) Info(msg string)
 Int adds an int field.
 
 ```go
-func Int(key string, value int) Field
+func (*Builder) Int(key string, value int) *Builder
 ```
 
 **Parameters:**
@@ -231,14 +230,14 @@ func Int(key string, value int) Field
 - `value` (int)
 
 **Returns:**
-- Field
+- *Builder
 
 ### Int64
 
 Int64 adds an int64 field.
 
 ```go
-func Int64(key string, value int64) Field
+func (*Builder) Int64(key string, value int64) *Builder
 ```
 
 **Parameters:**
@@ -246,7 +245,7 @@ func Int64(key string, value int64) Field
 - `value` (int64)
 
 **Returns:**
-- Field
+- *Builder
 
 ### Log
 
@@ -327,7 +326,7 @@ func (*Builder) Str(key, value string) *Builder
 Trace logs at trace level.
 
 ```go
-func (*ErrorBuilder) Trace(msg string)
+func (*Builder) Trace(msg string)
 ```
 
 **Parameters:**
@@ -356,7 +355,7 @@ func (*Builder) Uint(key string, value uint) *Builder
 Uint64 adds a uint64 field.
 
 ```go
-func Uint64(key string, value uint64) Field
+func (*Builder) Uint64(key string, value uint64) *Builder
 ```
 
 **Parameters:**
@@ -364,18 +363,19 @@ func Uint64(key string, value uint64) Field
 - `value` (uint64)
 
 **Returns:**
-- Field
+- *Builder
 
 ### Warn
 
 Warn logs at warn level.
 
 ```go
-func (*Builder) Warn(msg string)
+func Warn(msg string, fields ...Field)
 ```
 
 **Parameters:**
 - `msg` (string)
+- `fields` (...Field)
 
 **Returns:**
   None
@@ -385,7 +385,7 @@ func (*Builder) Warn(msg string)
 With adds a field to the builder using auto-detection.
 
 ```go
-func (*ErrorBuilder) With(key string, value any) *ErrorBuilder
+func (*Builder) With(key string, value any) *Builder
 ```
 
 **Parameters:**
@@ -393,7 +393,7 @@ func (*ErrorBuilder) With(key string, value any) *ErrorBuilder
 - `value` (any)
 
 **Returns:**
-- *ErrorBuilder
+- *Builder
 
 ### WithContext
 
@@ -442,14 +442,14 @@ func (*Builder) WithField(f Field) *Builder
 WithFields adds multiple typed fields to the builder.
 
 ```go
-func (*Builder) WithFields(fields ...Field) *Builder
+func WithFields(fields ...Field) Option
 ```
 
 **Parameters:**
 - `fields` (...Field)
 
 **Returns:**
-- *Builder
+- Option
 
 ### CompositeSampler
 CompositeSampler combines multiple samplers with AND logic.
@@ -695,7 +695,7 @@ func (*ErrorBuilder) Error(msg string)
 Fatal logs at fatal level if error is not nil and exits.
 
 ```go
-func (*ErrorBuilder) Fatal(msg string)
+func (*Builder) Fatal(msg string)
 ```
 
 **Parameters:**
@@ -751,7 +751,7 @@ func (*Builder) Warn(msg string)
 With adds a field to the error builder.
 
 ```go
-func (*ErrorBuilder) With(key string, value any) *ErrorBuilder
+func (*Builder) With(key string, value any) *Builder
 ```
 
 **Parameters:**
@@ -759,7 +759,7 @@ func (*ErrorBuilder) With(key string, value any) *ErrorBuilder
 - `value` (any)
 
 **Returns:**
-- *ErrorBuilder
+- *Builder
 
 ### WithField
 
@@ -780,14 +780,14 @@ func (*Builder) WithField(f Field) *Builder
 WithFields adds multiple fields.
 
 ```go
-func WithFields(fields ...Field) Option
+func (*Builder) WithFields(fields ...Field) *Builder
 ```
 
 **Parameters:**
 - `fields` (...Field)
 
 **Returns:**
-- Option
+- *Builder
 
 ### ErrorHook
 ErrorHook collects errors for inspection.
@@ -993,14 +993,14 @@ func Duration(key string, value time.Duration) Field
 Err creates an error field with key "error".
 
 ```go
-func Err(err error) Field
+func (*Builder) Err(err error) *Builder
 ```
 
 **Parameters:**
 - `err` (error)
 
 **Returns:**
-- Field
+- *Builder
 
 ### ErrChain
 
@@ -1124,7 +1124,7 @@ func Int32(key string, value int32) Field
 Int64 creates an int64 field.
 
 ```go
-func Int64(key string, value int64) Field
+func (*Builder) Int64(key string, value int64) *Builder
 ```
 
 **Parameters:**
@@ -1132,7 +1132,7 @@ func Int64(key string, value int64) Field
 - `value` (int64)
 
 **Returns:**
-- Field
+- *Builder
 
 ### Int8
 
@@ -2044,14 +2044,15 @@ func (*NeverSampler) Sample(level Level, msg string) bool
 WithLevel sets the sampler for a specific level.
 
 ```go
-func WithLevel(level Level) Option
+func (*LevelSampler) WithLevel(level Level, sampler Sampler) *LevelSampler
 ```
 
 **Parameters:**
 - `level` (Level)
+- `sampler` (Sampler)
 
 **Returns:**
-- Option
+- *LevelSampler
 
 ### Logger
 Logger is the main logging interface.
@@ -2252,7 +2253,7 @@ func (*Logger) Ctx(ctx context.Context) *Builder
 Debug logs at debug level.
 
 ```go
-func (*ErrorBuilder) Debug(msg string)
+func (*Builder) Debug(msg string)
 ```
 
 **Parameters:**
@@ -2313,7 +2314,7 @@ func (*Logger) DebugfContext(ctx context.Context, format string, args ...any)
 Error logs at error level.
 
 ```go
-func (*ErrorBuilder) Error(msg string)
+func (*Builder) Error(msg string)
 ```
 
 **Parameters:**
@@ -2388,7 +2389,7 @@ func (*Logger) F(keyvals ...any) *Builder
 Fatal logs at fatal level and exits.
 
 ```go
-func (*ErrorBuilder) Fatal(msg string)
+func (*Builder) Fatal(msg string)
 ```
 
 **Parameters:**
@@ -2783,7 +2784,7 @@ func (*Logger) SetOutput(w io.Writer)
 Trace logs at trace level.
 
 ```go
-func (*ErrorBuilder) Trace(msg string)
+func (*Builder) Trace(msg string)
 ```
 
 **Parameters:**
@@ -2905,7 +2906,7 @@ func (*Logger) WarnfContext(ctx context.Context, format string, args ...any)
 With creates a child logger with additional fields.
 
 ```go
-func (*ErrorBuilder) With(key string, value any) *ErrorBuilder
+func (*Builder) With(key string, value any) *Builder
 ```
 
 **Parameters:**
@@ -2913,7 +2914,7 @@ func (*ErrorBuilder) With(key string, value any) *ErrorBuilder
 - `value` (any)
 
 **Returns:**
-- *ErrorBuilder
+- *Builder
 
 ### WrapErr
 
@@ -3294,14 +3295,14 @@ func WithCallerDepth(depth int) Option
 WithFields adds default fields to all log entries.
 
 ```go
-func WithFields(fields ...Field) Option
+func (*Builder) WithFields(fields ...Field) *Builder
 ```
 
 **Parameters:**
 - `fields` (...Field)
 
 **Returns:**
-- Option
+- *Builder
 
 ### WithFormatter
 
@@ -3336,14 +3337,15 @@ func WithHooks(hooks ...Hook) Option
 WithLevel sets the minimum log level.
 
 ```go
-func WithLevel(level Level) Option
+func (*LevelSampler) WithLevel(level Level, sampler Sampler) *LevelSampler
 ```
 
 **Parameters:**
 - `level` (Level)
+- `sampler` (Sampler)
 
 **Returns:**
-- Option
+- *LevelSampler
 
 ### WithNamedFormat
 
@@ -3861,7 +3863,7 @@ result := CtxWarn(/* parameters */)
 Debug logs at debug level using the default logger.
 
 ```go
-func (*ErrorBuilder) Debug(msg string)
+func (*Builder) Debug(msg string)
 ```
 
 **Parameters:**
@@ -3906,13 +3908,14 @@ result := Debugf(/* parameters */)
 Error logs at error level using the default logger.
 
 ```go
-func (*Builder) Error(msg string)
+func Error(msg string, fields ...Field)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `msg` | `string` | |
+| `fields` | `...Field` | |
 
 **Returns:**
 None
@@ -3996,14 +3999,13 @@ result := Fatalf(/* parameters */)
 Info logs at info level using the default logger.
 
 ```go
-func Info(msg string, fields ...Field)
+func (*Builder) Info(msg string)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `msg` | `string` | |
-| `fields` | `...Field` | |
 
 **Returns:**
 None
@@ -4068,14 +4070,13 @@ result := Must(/* parameters */)
 Panic logs at panic level using the default logger and panics.
 
 ```go
-func Panic(msg string, fields ...Field)
+func (*Builder) Panic(msg string)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `msg` | `string` | |
-| `fields` | `...Field` | |
 
 **Returns:**
 None
@@ -4247,7 +4248,7 @@ result := SetDefaultLevel(/* parameters */)
 Trace logs at trace level using the default logger.
 
 ```go
-func (*ErrorBuilder) Trace(msg string)
+func (*Builder) Trace(msg string)
 ```
 
 **Parameters:**
@@ -4292,14 +4293,13 @@ result := Tracef(/* parameters */)
 Warn logs at warn level using the default logger.
 
 ```go
-func Warn(msg string, fields ...Field)
+func (*Builder) Warn(msg string)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `msg` | `string` | |
-| `fields` | `...Field` | |
 
 **Returns:**
 None
