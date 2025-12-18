@@ -29,7 +29,7 @@ Helix is built on Go's standard library (`net/http`) and provides a thin, high-p
 
 ### Data Flow
 
-```
+```text
 HTTP Request
     ↓
 Middleware Chain (RequestID, Logger, etc.)
@@ -71,28 +71,29 @@ s := helix.Default()
 
 Helix supports three handler styles:
 
-1. **Standard Handler**: Works with any `http.HandlerFunc`
+#1. **Standard Handler**: Works with any `http.HandlerFunc`
 
-   ```go
-   s.GET("/", func(w http.ResponseWriter, r *http.Request) {
-       helix.OK(w, data)
-   })
-   ```
+```go
+s.GET("/", func(w http.ResponseWriter, r *http.Request) {
+    helix.OK(w, data)
+})
+```
 
-2. **Ctx Handler**: Uses `Ctx` for fluent API
+#2. **Ctx Handler**: Uses `Ctx` for fluent API
 
-   ```go
-   s.GET("/users", helix.HandleCtx(func(c *helix.Ctx) error {
-       return c.OK(users)
-   }))
-   ```
+```go
+s.GET("/users", helix.HandleCtx(func(c *helix.Ctx) error {
+    return c.OK(users)
+}))
+```
 
-3. **Typed Handler**: Generic handlers with automatic binding
-   ```go
-   s.POST("/users", helix.Handle(func(ctx context.Context, req CreateRequest) (User, error) {
-       return userService.Create(ctx, req)
-   }))
-   ```
+#3. **Typed Handler**: Generic handlers with automatic binding
+
+```go
+s.POST("/users", helix.Handle(func(ctx context.Context, req CreateRequest) (User, error) {
+    return userService.Create(ctx, req)
+}))
+```
 
 ### Request Binding
 

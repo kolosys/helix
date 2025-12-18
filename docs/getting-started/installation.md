@@ -1,10 +1,10 @@
 # Installation
 
-This guide will help you install and set up helix in your Go project.
+This guide will help you install and set up Helix in your Go project.
 
 ## Prerequisites
 
-Before installing helix, ensure you have:
+Before installing Helix, ensure you have:
 
 - **Go 1.24+** or later installed
 - A Go module initialized in your project (run `go mod init` if needed)
@@ -14,7 +14,7 @@ Before installing helix, ensure you have:
 
 ### Step 1: Install the Package
 
-Use `go get` to install helix:
+Use `go get` to install Helix:
 
 ```bash
 go get github.com/kolosys/helix
@@ -30,46 +30,55 @@ Import the package in your Go source files:
 import "github.com/kolosys/helix"
 ```
 
-### Multiple Packages
+### Available Packages
 
-helix includes several packages. Import the ones you need:
+Helix includes several packages. Import the ones you need:
+
+#### Main Package
+
+The main `helix` package provides the HTTP web framework:
 
 ```go
 // Package helix provides a zero-dependency, context-aware, high-performance
-HTTP web framework for Go with stdlib compatibility.
-
+// HTTP web framework for Go with stdlib compatibility.
 import "github.com/kolosys/helix"
 ```
 
+#### Logs Package
+
+The `logs` package provides structured logging:
+
 ```go
 // Package logs provides a high-performance, context-aware structured logging library.
-
-Features:
-  - Zero-allocation hot paths using sync.Pool
-  - Context-aware logging with context.Context
-  - Type-safe field builders
-  - Multiple output formats (text, JSON, pretty)
-  - Sampling for high-volume logs
-  - Async logging option
-  - Hook system for extensibility
-  - Built-in caller information
-  - Chained/fluent API
-
-Basic usage:
-
-	log := logs.New()
-	log.Info("server started", logs.Int("port", 8080))
-
-With context:
-
-	log.InfoContext(ctx, "request processed", logs.Duration("latency", time.Since(start)))
-
+//
+// Features:
+//   - Zero-allocation hot paths using sync.Pool
+//   - Context-aware logging with context.Context
+//   - Type-safe field builders
+//   - Multiple output formats (text, JSON, pretty)
+//   - Sampling for high-volume logs
+//   - Async logging option
+//   - Hook system for extensibility
+//   - Built-in caller information
+//   - Chained/fluent API
+//
+// Basic usage:
+//
+//	log := logs.New()
+//	log.Info("server started", logs.Int("port", 8080))
+//
+// With context:
+//
+//	log.InfoContext(ctx, "request processed", logs.Duration("latency", time.Since(start)))
 import "github.com/kolosys/helix/logs"
 ```
 
+#### Middleware Package
+
+The `middleware` package provides HTTP middleware:
+
 ```go
 // Package middleware provides HTTP middleware for the Helix framework.
-
 import "github.com/kolosys/helix/middleware"
 ```
 
@@ -86,7 +95,8 @@ import (
 )
 
 func main() {
-    fmt.Println("helix installed successfully!")
+    fmt.Println("Helix installed successfully!")
+    fmt.Printf("Helix version: %s\n", helix.Version)
 }
 ```
 
@@ -143,15 +153,25 @@ go mod download
 go test ./...
 ```
 
+Run tests with race detection:
+
+```bash
+go test -race ./...
+```
+
 ## Troubleshooting
 
 ### Module Not Found
 
 If you encounter a "module not found" error:
 
-1. Ensure your `GOPATH` is set correctly
+1. Ensure you're using Go modules (run `go mod init` if needed)
 2. Check that you have network access to GitHub
-3. Try running `go clean -modcache` and reinstall
+3. Try running `go clean -modcache` and reinstall:
+   ```bash
+   go clean -modcache
+   go get github.com/kolosys/helix
+   ```
 
 ### Private Repository Access
 
@@ -161,18 +181,16 @@ For private repositories, configure Git to use SSH or a personal access token:
 git config --global url."git@github.com:".insteadOf "https://github.com/"
 ```
 
-Or set up GOPRIVATE:
+Or set up `GOPRIVATE`:
 
 ```bash
 export GOPRIVATE=github.com/kolosys/helix
 ```
 
-## Next Steps
+### Version Compatibility
 
-Now that you have helix installed, check out the [Quick Start Guide](quick-start.md) to learn how to use it.
+If you encounter compatibility issues:
 
-## Additional Resources
-
-- [Quick Start Guide](quick-start.md)
-- [API Reference](../api-reference/)
-- [Examples](../examples/README.md)
+1. Check your Go version: `go version`
+2. Ensure you're using Go 1.24 or later
+3. Update Go if necessary: Visit [golang.org](https://golang.org/dl/)

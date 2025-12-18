@@ -23,7 +23,7 @@ The logs package is designed for high-performance logging in production environm
 
 ### Data Flow
 
-```
+```text
 Logger.Log()
     ↓
 Level Check (skip if below threshold)
