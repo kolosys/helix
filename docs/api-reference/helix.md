@@ -216,15 +216,14 @@ func (*Ctx) AddHeader(key, value string) *Ctx
 Attachment sets the Content-Disposition header to attachment.
 
 ```go
-func Attachment(w http.ResponseWriter, filename string)
+func (*Ctx) Attachment(filename string) *Ctx
 ```
 
 **Parameters:**
-- `w` (http.ResponseWriter)
 - `filename` (string)
 
 **Returns:**
-  None
+- *Ctx
 
 ### BadRequest
 
@@ -391,14 +390,15 @@ func (*Ctx) Forbidden(message string) error
 Get retrieves a value from the request-scoped store.
 
 ```go
-func (**ast.IndexExpr) Get(h *ast.IndexListExpr) **ast.IndexExpr
+func (*Ctx) Get(key string) (any, bool)
 ```
 
 **Parameters:**
-- `h` (*ast.IndexListExpr)
+- `key` (string)
 
 **Returns:**
-- **ast.IndexExpr
+- any
+- bool
 
 ### GetInt
 
@@ -490,11 +490,10 @@ func (*Ctx) InternalServerError(message string) error
 JSON writes a JSON response with the given status code.
 
 ```go
-func JSON(w http.ResponseWriter, status int, v any) error
+func (*Ctx) JSON(status int, v any) error
 ```
 
 **Parameters:**
-- `w` (http.ResponseWriter)
 - `status` (int)
 - `v` (any)
 
@@ -609,11 +608,10 @@ func Param(r *http.Request, name string) string
 ParamInt returns the value of a path parameter as an int.
 
 ```go
-func ParamInt(r *http.Request, name string) (int, error)
+func (*Ctx) ParamInt(name string) (int, error)
 ```
 
 **Parameters:**
-- `r` (*http.Request)
 - `name` (string)
 
 **Returns:**
@@ -641,11 +639,10 @@ func ParamInt64(r *http.Request, name string) (int64, error)
 ParamUUID returns the value of a path parameter validated as a UUID.
 
 ```go
-func ParamUUID(r *http.Request, name string) (string, error)
+func (*Ctx) ParamUUID(name string) (string, error)
 ```
 
 **Parameters:**
-- `r` (*http.Request)
 - `name` (string)
 
 **Returns:**
@@ -671,11 +668,10 @@ func (*Ctx) Problem(p Problem) error
 Query returns the first value of a query parameter.
 
 ```go
-func Query(r *http.Request, name string) string
+func (*Ctx) Query(name string) string
 ```
 
 **Parameters:**
-- `r` (*http.Request)
 - `name` (string)
 
 **Returns:**
@@ -686,11 +682,10 @@ func Query(r *http.Request, name string) string
 QueryBool returns the first value of a query parameter as a bool.
 
 ```go
-func QueryBool(r *http.Request, name string) bool
+func (*Ctx) QueryBool(name string) bool
 ```
 
 **Parameters:**
-- `r` (*http.Request)
 - `name` (string)
 
 **Returns:**
@@ -701,11 +696,10 @@ func QueryBool(r *http.Request, name string) bool
 QueryDefault returns the first value of a query parameter or a default value.
 
 ```go
-func QueryDefault(r *http.Request, name, defaultVal string) string
+func (*Ctx) QueryDefault(name, defaultVal string) string
 ```
 
 **Parameters:**
-- `r` (*http.Request)
 - `name` (string)
 - `defaultVal` (string)
 
@@ -717,11 +711,10 @@ func QueryDefault(r *http.Request, name, defaultVal string) string
 QueryFloat64 returns the first value of a query parameter as a float64.
 
 ```go
-func QueryFloat64(r *http.Request, name string, defaultVal float64) float64
+func (*Ctx) QueryFloat64(name string, defaultVal float64) float64
 ```
 
 **Parameters:**
-- `r` (*http.Request)
 - `name` (string)
 - `defaultVal` (float64)
 
@@ -733,11 +726,10 @@ func QueryFloat64(r *http.Request, name string, defaultVal float64) float64
 QueryInt returns the first value of a query parameter as an int.
 
 ```go
-func QueryInt(r *http.Request, name string, defaultVal int) int
+func (*Ctx) QueryInt(name string, defaultVal int) int
 ```
 
 **Parameters:**
-- `r` (*http.Request)
 - `name` (string)
 - `defaultVal` (int)
 
@@ -749,11 +741,10 @@ func QueryInt(r *http.Request, name string, defaultVal int) int
 QueryInt64 returns the first value of a query parameter as an int64.
 
 ```go
-func QueryInt64(r *http.Request, name string, defaultVal int64) int64
+func (*Ctx) QueryInt64(name string, defaultVal int64) int64
 ```
 
 **Parameters:**
-- `r` (*http.Request)
 - `name` (string)
 - `defaultVal` (int64)
 
@@ -897,11 +888,10 @@ func (*Ctx) Text(status int, text string) error
 Unauthorized writes a 401 Unauthorized error response.
 
 ```go
-func Unauthorized(w http.ResponseWriter, message string) error
+func (*Ctx) Unauthorized(message string) error
 ```
 
 **Parameters:**
-- `w` (http.ResponseWriter)
 - `message` (string)
 
 **Returns:**
@@ -1028,7 +1018,7 @@ func (*Server) Any(pattern string, handler http.HandlerFunc)
 DELETE registers a handler for DELETE requests.
 
 ```go
-func (*Group) DELETE(pattern string, handler http.HandlerFunc)
+func (*Server) DELETE(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -1043,7 +1033,7 @@ func (*Group) DELETE(pattern string, handler http.HandlerFunc)
 GET registers a handler for GET requests.
 
 ```go
-func (*Group) GET(pattern string, handler http.HandlerFunc)
+func (*Server) GET(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -1088,7 +1078,7 @@ func (*Server) HEAD(pattern string, handler http.HandlerFunc)
 Handle registers a handler for the given method and pattern.
 
 ```go
-func (*Server) Handle(method, pattern string, handler http.HandlerFunc)
+func (*Router) Handle(method, pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -1151,7 +1141,7 @@ func (*Group) OPTIONS(pattern string, handler http.HandlerFunc)
 PATCH registers a handler for PATCH requests.
 
 ```go
-func (*Group) PATCH(pattern string, handler http.HandlerFunc)
+func (*Server) PATCH(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -1166,7 +1156,7 @@ func (*Group) PATCH(pattern string, handler http.HandlerFunc)
 POST registers a handler for POST requests.
 
 ```go
-func (*Group) POST(pattern string, handler http.HandlerFunc)
+func (*Server) POST(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -1181,7 +1171,7 @@ func (*Group) POST(pattern string, handler http.HandlerFunc)
 PUT registers a handler for PUT requests.
 
 ```go
-func (*Server) PUT(pattern string, handler http.HandlerFunc)
+func (*Group) PUT(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -1196,7 +1186,7 @@ func (*Server) PUT(pattern string, handler http.HandlerFunc)
 Resource creates a new ResourceBuilder for the given pattern within this group. The pattern is relative to the group's prefix. Optional middleware can be applied to all routes in the resource. Accepts helix.Middleware, middleware.Middleware, or func(http.Handler) http.Handler.
 
 ```go
-func (*Server) Resource(pattern string, mw ...any) *ResourceBuilder
+func (*Group) Resource(pattern string, mw ...any) *ResourceBuilder
 ```
 
 **Parameters:**
@@ -1226,7 +1216,7 @@ func (*Server) Static(pattern, root string)
 Use adds middleware to the group. Middleware is applied to all routes registered on this group. Accepts Middleware (helix.Middleware is an alias for middleware.Middleware) or func(http.Handler) http.Handler.
 
 ```go
-func (*Server) Use(mw ...any)
+func (*Group) Use(mw ...any)
 ```
 
 **Parameters:**
@@ -1653,11 +1643,11 @@ type ModuleFunc func(r RouteRegistrar)
 Register implements Module.
 
 ```go
-func (ModuleFunc) Register(r RouteRegistrar)
+func Register(service T)
 ```
 
 **Parameters:**
-- `r` (RouteRegistrar)
+- `service` (T)
 
 **Returns:**
   None
@@ -1696,193 +1686,67 @@ var value NoResponseHandler
 type NoResponseHandler func(ctx context.Context, req Req) error
 ```
 
-### Option
-Option configures a Server.
+### Options
+Options configures a Server.
 
 #### Example Usage
 
 ```go
-// Example usage of Option
-var value Option
-// Initialize with appropriate value
+// Create a new Options
+options := Options{
+    Addr: "example",
+    ReadTimeout: /* value */,
+    WriteTimeout: /* value */,
+    IdleTimeout: /* value */,
+    GracePeriod: /* value */,
+    TLSCertFile: "example",
+    TLSKeyFile: "example",
+    TLSConfig: &/* value */{},
+    MaxHeaderBytes: 42,
+    HideBanner: true,
+    Banner: "example",
+    ErrorHandler: ErrorHandler{},
+    BasePath: "example",
+}
 ```
 
 #### Type Definition
 
 ```go
-type Option func(*Server)
+type Options struct {
+    Addr string
+    ReadTimeout time.Duration
+    WriteTimeout time.Duration
+    IdleTimeout time.Duration
+    GracePeriod time.Duration
+    TLSCertFile string
+    TLSKeyFile string
+    TLSConfig *tls.Config
+    MaxHeaderBytes int
+    HideBanner bool
+    Banner string
+    ErrorHandler ErrorHandler
+    BasePath string
+}
 ```
 
-### Constructor Functions
+### Fields
 
-### HideBanner
-
-HideBanner hides the banner and sets the banner to an empty string.
-
-```go
-func HideBanner() Option
-```
-
-**Parameters:**
-  None
-
-**Returns:**
-- Option
-
-### WithAddr
-
-WithAddr sets the address the server listens on. Default is ":8080".
-
-```go
-func WithAddr(addr string) Option
-```
-
-**Parameters:**
-- `addr` (string)
-
-**Returns:**
-- Option
-
-### WithBasePath
-
-WithBasePath sets a base path prefix for all routes. All registered routes will be prefixed with this path. For example, with base path "/api/v1", a route "/users" becomes "/api/v1/users". The base path should start with "/" but should not end with "/" (it will be normalized).
-
-```go
-func WithBasePath(path string) Option
-```
-
-**Parameters:**
-- `path` (string)
-
-**Returns:**
-- Option
-
-### WithCustomBanner
-
-WithCustomBanner sets a custom banner for the server.
-
-```go
-func WithCustomBanner(banner string) Option
-```
-
-**Parameters:**
-- `banner` (string)
-
-**Returns:**
-- Option
-
-### WithErrorHandler
-
-WithErrorHandler sets a custom error handler for the server. The error handler will be called whenever an error occurs in a handler. If not set, the default error handling (RFC 7807 Problem Details) is used.
-
-```go
-func WithErrorHandler(handler ErrorHandler) Option
-```
-
-**Parameters:**
-- `handler` (ErrorHandler)
-
-**Returns:**
-- Option
-
-### WithGracePeriod
-
-WithGracePeriod sets the maximum duration to wait for active connections to finish during graceful shutdown.
-
-```go
-func WithGracePeriod(d time.Duration) Option
-```
-
-**Parameters:**
-- `d` (time.Duration)
-
-**Returns:**
-- Option
-
-### WithIdleTimeout
-
-WithIdleTimeout sets the maximum amount of time to wait for the next request when keep-alives are enabled.
-
-```go
-func WithIdleTimeout(d time.Duration) Option
-```
-
-**Parameters:**
-- `d` (time.Duration)
-
-**Returns:**
-- Option
-
-### WithMaxHeaderBytes
-
-WithMaxHeaderBytes sets the maximum size of request headers.
-
-```go
-func WithMaxHeaderBytes(n int) Option
-```
-
-**Parameters:**
-- `n` (int)
-
-**Returns:**
-- Option
-
-### WithReadTimeout
-
-WithReadTimeout sets the maximum duration for reading the entire request.
-
-```go
-func WithReadTimeout(d time.Duration) Option
-```
-
-**Parameters:**
-- `d` (time.Duration)
-
-**Returns:**
-- Option
-
-### WithTLS
-
-WithTLS configures the server to use TLS with the provided certificate and key files.
-
-```go
-func WithTLS(certFile, keyFile string) Option
-```
-
-**Parameters:**
-- `certFile` (string)
-- `keyFile` (string)
-
-**Returns:**
-- Option
-
-### WithTLSConfig
-
-WithTLSConfig sets a custom TLS configuration for the server.
-
-```go
-func WithTLSConfig(config *tls.Config) Option
-```
-
-**Parameters:**
-- `config` (*tls.Config)
-
-**Returns:**
-- Option
-
-### WithWriteTimeout
-
-WithWriteTimeout sets the maximum duration before timing out writes of the response.
-
-```go
-func WithWriteTimeout(d time.Duration) Option
-```
-
-**Parameters:**
-- `d` (time.Duration)
-
-**Returns:**
-- Option
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| Addr | `string` | Addr is the address the server listens on. Default is ":8080". |
+| ReadTimeout | `time.Duration` | ReadTimeout is the maximum duration for reading the entire request. Default is 30 seconds. |
+| WriteTimeout | `time.Duration` | WriteTimeout is the maximum duration before timing out writes of the response. Default is 30 seconds. |
+| IdleTimeout | `time.Duration` | IdleTimeout is the maximum amount of time to wait for the next request when keep-alives are enabled. Default is 120 seconds. |
+| GracePeriod | `time.Duration` | GracePeriod is the maximum duration to wait for active connections to finish during graceful shutdown. Default is 30 seconds. |
+| TLSCertFile | `string` | TLSCertFile is the path to the TLS certificate file. If set along with TLSKeyFile, the server will use TLS. |
+| TLSKeyFile | `string` | TLSKeyFile is the path to the TLS key file. If set along with TLSCertFile, the server will use TLS. |
+| TLSConfig | `*tls.Config` | TLSConfig is a custom TLS configuration for the server. If set, TLSCertFile and TLSKeyFile are ignored. |
+| MaxHeaderBytes | `int` | MaxHeaderBytes is the maximum size of request headers. Default is 0 (no limit). |
+| HideBanner | `bool` | HideBanner hides the banner on startup. Default is false. |
+| Banner | `string` | Banner is a custom banner to display on startup. If set, HideBanner is ignored. |
+| ErrorHandler | `ErrorHandler` | ErrorHandler is a custom error handler for the server. If not set, the default error handling (RFC 7807 Problem Details) is used. |
+| BasePath | `string` | BasePath is a base path prefix for all routes. All registered routes will be prefixed with this path. For example, with base path "/api/v1", a route "/users" becomes "/api/v1/users". The base path should start with "/" but should not end with "/" (it will be normalized). |
 
 ### PaginatedResponse
 PaginatedResponse wraps a list response with pagination metadata.
@@ -2578,14 +2442,15 @@ func (*ResourceBuilder) Destroy(handler http.HandlerFunc) *ResourceBuilder
 Get registers a GET handler for a single resource (e.g., GET /users/{id}).
 
 ```go
-func (**ast.IndexExpr) Get(h *ast.IndexListExpr) **ast.IndexExpr
+func (*Ctx) Get(key string) (any, bool)
 ```
 
 **Parameters:**
-- `h` (*ast.IndexListExpr)
+- `key` (string)
 
 **Returns:**
-- **ast.IndexExpr
+- any
+- bool
 
 ### Index
 
@@ -2857,12 +2722,12 @@ func (*Server) Routes() []RouteInfo
 ServeHTTP implements http.Handler.
 
 ```go
-func (*Router) ServeHTTP(w http.ResponseWriter, req *http.Request)
+func (*Server) ServeHTTP(w http.ResponseWriter, r *http.Request)
 ```
 
 **Parameters:**
 - `w` (http.ResponseWriter)
-- `req` (*http.Request)
+- `r` (*http.Request)
 
 **Returns:**
   None
@@ -2890,28 +2755,28 @@ type Server struct {
 
 ### Default
 
-Default creates a new Server with sensible defaults for development. It includes RequestID, Logger (dev format), and Recover middleware.
+Default creates a new Server with sensible defaults for development. It includes RequestID, Logger (dev format), and Recover middleware. If opts is nil, default options will be used.
 
 ```go
-func Default(opts ...Option) *Server
+func Default(opts *Options) *Server
 ```
 
 **Parameters:**
-- `opts` (...Option)
+- `opts` (*Options)
 
 **Returns:**
 - *Server
 
 ### New
 
-New creates a new Server with the provided options.
+New creates a new Server with the provided options. If opts is nil, default options will be used.
 
 ```go
-func New(opts ...Option) *Server
+func New(opts *Options) *Server
 ```
 
 **Parameters:**
-- `opts` (...Option)
+- `opts` (*Options)
 
 **Returns:**
 - *Server
@@ -2937,7 +2802,7 @@ func (*Server) Addr() string
 Any registers a handler for all HTTP methods.
 
 ```go
-func (*Server) Any(pattern string, handler http.HandlerFunc)
+func (*Group) Any(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -2996,7 +2861,7 @@ func (*Server) DELETE(pattern string, handler http.HandlerFunc)
 GET registers a handler for GET requests.
 
 ```go
-func (*Group) GET(pattern string, handler http.HandlerFunc)
+func (*Server) GET(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -3026,7 +2891,7 @@ func (*Group) Group(prefix string, mw ...any) *Group
 HEAD registers a handler for HEAD requests.
 
 ```go
-func (*Server) HEAD(pattern string, handler http.HandlerFunc)
+func (*Group) HEAD(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -3041,7 +2906,7 @@ func (*Server) HEAD(pattern string, handler http.HandlerFunc)
 Handle registers a handler for the given method and pattern.
 
 ```go
-func (*Server) Handle(method, pattern string, handler http.HandlerFunc)
+func (*Group) Handle(method, pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -3132,7 +2997,7 @@ func (*Server) OnStop(fn func(ctx context.Context, s *Server))
 PATCH registers a handler for PATCH requests.
 
 ```go
-func (*Group) PATCH(pattern string, handler http.HandlerFunc)
+func (*Server) PATCH(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -3162,7 +3027,7 @@ func (*Server) POST(pattern string, handler http.HandlerFunc)
 PUT registers a handler for PUT requests.
 
 ```go
-func (*Group) PUT(pattern string, handler http.HandlerFunc)
+func (*Server) PUT(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -3234,12 +3099,12 @@ func (*Server) Run(ctx context.Context) error
 ServeHTTP implements the http.Handler interface.
 
 ```go
-func (*Server) ServeHTTP(w http.ResponseWriter, r *http.Request)
+func (*Router) ServeHTTP(w http.ResponseWriter, req *http.Request)
 ```
 
 **Parameters:**
 - `w` (http.ResponseWriter)
-- `r` (*http.Request)
+- `req` (*http.Request)
 
 **Returns:**
   None
@@ -3260,7 +3125,7 @@ func (*Server) Shutdown(ctx context.Context) error
 
 ### Start
 
-Start starts the server and blocks until shutdown. If an address is provided, it will be used instead of the WithAddr option. If the address is not provided and the WithAddr option is not set, it will use ":8080". This is a convenience method that calls Run with a background context.
+Start starts the server and blocks until shutdown. If an address is provided, it will override the Addr option. If the address is not provided and the Addr option is not set, it will use ":8080". This is a convenience method that calls Run with a background context.
 
 ```go
 func (*Server) Start(addr ...string) error
@@ -3420,14 +3285,15 @@ func (**ast.IndexExpr) Delete(h *ast.IndexExpr) **ast.IndexExpr
 Get registers a typed GET handler for a single resource. Handler signature: func(ctx, IDRequest) (Entity, error)
 
 ```go
-func (**ast.IndexExpr) Get(h *ast.IndexListExpr) **ast.IndexExpr
+func (*Ctx) Get(key string) (any, bool)
 ```
 
 **Parameters:**
-- `h` (*ast.IndexListExpr)
+- `key` (string)
 
 **Returns:**
-- **ast.IndexExpr
+- any
+- bool
 
 ### List
 
@@ -3689,12 +3555,13 @@ type ValidationProblem struct {
 Accepted writes a 202 Accepted JSON response.
 
 ```go
-func (*Ctx) Accepted(v any) error
+func Accepted(w http.ResponseWriter, v any) error
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
+| `w` | `http.ResponseWriter` | |
 | `v` | `any` | |
 
 **Returns:**
@@ -3737,13 +3604,12 @@ result := Attachment(/* parameters */)
 BadRequest writes a 400 Bad Request error response.
 
 ```go
-func BadRequest(w http.ResponseWriter, message string) error
+func (*Ctx) BadRequest(message string) error
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `w` | `http.ResponseWriter` | |
 | `message` | `string` | |
 
 **Returns:**
@@ -4005,13 +3871,12 @@ result := File(/* parameters */)
 Forbidden writes a 403 Forbidden error response.
 
 ```go
-func Forbidden(w http.ResponseWriter, message string) error
+func (*Ctx) Forbidden(message string) error
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `w` | `http.ResponseWriter` | |
 | `message` | `string` | |
 
 **Returns:**
@@ -4055,18 +3920,19 @@ result := FromContext(/* parameters */)
 Get retrieves a service from the global registry. Returns the zero value and false if not found.
 
 ```go
-func (**ast.IndexExpr) Get(h *ast.IndexListExpr) **ast.IndexExpr
+func (*Ctx) Get(key string) (any, bool)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `h` | `*ast.IndexListExpr` | |
+| `key` | `string` | |
 
 **Returns:**
 | Type | Description |
 |------|-------------|
-| `**ast.IndexExpr` | |
+| `any` | |
+| `bool` | |
 
 **Example:**
 
@@ -4345,13 +4211,12 @@ result := Inline(/* parameters */)
 InternalServerError writes a 500 Internal Server Error response.
 
 ```go
-func InternalServerError(w http.ResponseWriter, message string) error
+func (*Ctx) InternalServerError(message string) error
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `w` | `http.ResponseWriter` | |
 | `message` | `string` | |
 
 **Returns:**
@@ -4562,13 +4427,12 @@ result := OK(/* parameters */)
 Param returns the value of a path parameter. Returns an empty string if the parameter does not exist.
 
 ```go
-func Param(r *http.Request, name string) string
+func (*Ctx) Param(name string) string
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `*http.Request` | |
 | `name` | `string` | |
 
 **Returns:**
@@ -4587,12 +4451,13 @@ result := Param(/* parameters */)
 ParamInt returns the value of a path parameter as an int. Returns an error if the parameter does not exist or cannot be parsed.
 
 ```go
-func (*Ctx) ParamInt(name string) (int, error)
+func ParamInt(r *http.Request, name string) (int, error)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
+| `r` | `*http.Request` | |
 | `name` | `string` | |
 
 **Returns:**
@@ -4612,13 +4477,12 @@ result := ParamInt(/* parameters */)
 ParamInt64 returns the value of a path parameter as an int64. Returns an error if the parameter does not exist or cannot be parsed.
 
 ```go
-func ParamInt64(r *http.Request, name string) (int64, error)
+func (*Ctx) ParamInt64(name string) (int64, error)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `*http.Request` | |
 | `name` | `string` | |
 
 **Returns:**
@@ -4638,13 +4502,12 @@ result := ParamInt64(/* parameters */)
 ParamUUID returns the value of a path parameter validated as a UUID. Returns an error if the parameter does not exist or is not a valid UUID format.
 
 ```go
-func ParamUUID(r *http.Request, name string) (string, error)
+func (*Ctx) ParamUUID(name string) (string, error)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `*http.Request` | |
 | `name` | `string` | |
 
 **Returns:**
@@ -4664,13 +4527,12 @@ result := ParamUUID(/* parameters */)
 Query returns the first value of a query parameter. Returns an empty string if the parameter does not exist.
 
 ```go
-func Query(r *http.Request, name string) string
+func (*Ctx) Query(name string) string
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `*http.Request` | |
 | `name` | `string` | |
 
 **Returns:**
@@ -4714,13 +4576,12 @@ result := QueryBool(/* parameters */)
 QueryDefault returns the first value of a query parameter or a default value.
 
 ```go
-func QueryDefault(r *http.Request, name, defaultVal string) string
+func (*Ctx) QueryDefault(name, defaultVal string) string
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `*http.Request` | |
 | `name` | `string` | |
 | `defaultVal` | `string` | |
 
@@ -4740,13 +4601,12 @@ result := QueryDefault(/* parameters */)
 QueryFloat64 returns the first value of a query parameter as a float64. Returns the default value if the parameter does not exist or cannot be parsed.
 
 ```go
-func QueryFloat64(r *http.Request, name string, defaultVal float64) float64
+func (*Ctx) QueryFloat64(name string, defaultVal float64) float64
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `*http.Request` | |
 | `name` | `string` | |
 | `defaultVal` | `float64` | |
 
@@ -4766,13 +4626,12 @@ result := QueryFloat64(/* parameters */)
 QueryInt returns the first value of a query parameter as an int. Returns the default value if the parameter does not exist or cannot be parsed.
 
 ```go
-func QueryInt(r *http.Request, name string, defaultVal int) int
+func (*Ctx) QueryInt(name string, defaultVal int) int
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `*http.Request` | |
 | `name` | `string` | |
 | `defaultVal` | `int` | |
 
@@ -4818,13 +4677,12 @@ result := QueryInt64(/* parameters */)
 QuerySlice returns all values of a query parameter as a string slice. Returns nil if the parameter does not exist.
 
 ```go
-func QuerySlice(r *http.Request, name string) []string
+func (*Ctx) QuerySlice(name string) []string
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `*http.Request` | |
 | `name` | `string` | |
 
 **Returns:**
@@ -4867,14 +4725,12 @@ result := ReadinessHandler(/* parameters */)
 Redirect redirects the request to the given URL.
 
 ```go
-func Redirect(w http.ResponseWriter, r *http.Request, url string, code int)
+func (*Ctx) Redirect(url string, code int)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `w` | `http.ResponseWriter` | |
-| `r` | `*http.Request` | |
 | `url` | `string` | |
 | `code` | `int` | |
 
