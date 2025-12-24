@@ -16,9 +16,9 @@ func main() {
 	logs.SetDefaultFormatter(&logs.JSONFormatter{})
 
 	// Create a new server with default settings
-	s := helix.Default(
-		helix.WithAddr(":8080"),
-	)
+	s := helix.Default(&helix.Options{
+		Addr: ":8080",
+	})
 
 	// Simple handler using http.HandlerFunc
 	s.GET("/", func(w http.ResponseWriter, r *http.Request) {

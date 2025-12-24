@@ -183,7 +183,7 @@ s.Static("/assets/", "./public")
 ### Basic Routing
 
 ```go
-s := helix.New()
+s := helix.New(nil)
 
 // Simple routes
 s.GET("/", homeHandler)
@@ -338,13 +338,13 @@ s.GET("/users/{id}", helix.HandleCtx(func(c *helix.Ctx) error {
 
 ```go
 // ❌ Wrong
-s := helix.New()
+s := helix.New(nil)
 s.GET("/users", handler)
-s.WithBasePath("/api")  // Too late!
+// Cannot set base path after creation
 
 // ✅ Correct
-s := helix.New(helix.WithBasePath("/api"))
-s.GET("/users", handler)  // Route is /api/users
+s := helix.New(&helix.Options{BasePath: "/api"})
+s.GET("/users", handler) // Route is /api/users
 ```
 
 ## Integration Guide

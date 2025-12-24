@@ -424,7 +424,9 @@ func apiErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
     helix.WriteProblem(w, problem)
 }
 
-s := helix.New(helix.WithErrorHandler(apiErrorHandler))
+s := helix.New(&helix.Options{
+    ErrorHandler: apiErrorHandler,
+})
 ```
 
 ## Further Reading

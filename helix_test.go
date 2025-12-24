@@ -13,7 +13,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	s := New()
+	s := New(nil)
 	if s == nil {
 		t.Fatal("New() returned nil")
 	}
@@ -24,13 +24,13 @@ func TestNew(t *testing.T) {
 }
 
 func TestNewWithOptions(t *testing.T) {
-	s := New(
-		WithAddr(":3000"),
-		WithReadTimeout(10*time.Second),
-		WithWriteTimeout(20*time.Second),
-		WithIdleTimeout(60*time.Second),
-		WithGracePeriod(15*time.Second),
-	)
+	s := New(&Options{
+		Addr:         ":3000",
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 20 * time.Second,
+		IdleTimeout:  60 * time.Second,
+		GracePeriod:  15 * time.Second,
+	})
 
 	cfg := s.GetConfig()
 	if cfg.Addr != ":3000" {
@@ -51,7 +51,7 @@ func TestNewWithOptions(t *testing.T) {
 }
 
 func TestServerUse(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	called := false
 	mw := func(next http.Handler) http.Handler {
@@ -98,7 +98,7 @@ func TestRouteRegistration(t *testing.T) {
 
 	for _, tc := range methods {
 		t.Run(tc.name, func(t *testing.T) {
-			s := New()
+			s := New(nil)
 			called := false
 
 			tc.fn(s, "/test", func(w http.ResponseWriter, r *http.Request) {
@@ -121,7 +121,7 @@ func TestRouteRegistration(t *testing.T) {
 }
 
 func TestRouteNotFound(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/exists", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
@@ -136,7 +136,7 @@ func TestRouteNotFound(t *testing.T) {
 }
 
 func TestPathParams(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id := Param(r, "id")
 		Text(w, http.StatusOK, id)
@@ -155,7 +155,7 @@ func TestPathParams(t *testing.T) {
 }
 
 func TestMultiplePathParams(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/users/{userID}/posts/{postID}", func(w http.ResponseWriter, r *http.Request) {
 		userID := Param(r, "userID")
 		postID := Param(r, "postID")
@@ -175,7 +175,7 @@ func TestMultiplePathParams(t *testing.T) {
 }
 
 func TestWildcardParam(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/files/{path...}", func(w http.ResponseWriter, r *http.Request) {
 		path := Param(r, "path")
 		Text(w, http.StatusOK, path)
@@ -194,7 +194,7 @@ func TestWildcardParam(t *testing.T) {
 }
 
 func TestParamInt(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id, err := ParamInt(r, "id")
 		if err != nil {
@@ -227,7 +227,7 @@ func TestParamInt(t *testing.T) {
 }
 
 func TestParamInt64(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/items/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id, err := ParamInt64(r, "id")
 		if err != nil {
@@ -247,7 +247,7 @@ func TestParamInt64(t *testing.T) {
 }
 
 func TestParamUUID(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/resources/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id, err := ParamUUID(r, "id")
 		if err != nil {
@@ -295,7 +295,7 @@ func TestQueryParams(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			s := New()
+			s := New(nil)
 			s.GET("/search", func(w http.ResponseWriter, r *http.Request) {
 				name := Query(r, tc.param)
 				Text(w, http.StatusOK, name)
@@ -313,7 +313,7 @@ func TestQueryParams(t *testing.T) {
 }
 
 func TestQueryInt(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/page", func(w http.ResponseWriter, r *http.Request) {
 		page := QueryInt(r, "page", 1)
 		JSON(w, http.StatusOK, map[string]int{"page": page})
@@ -344,7 +344,7 @@ func TestQueryInt(t *testing.T) {
 }
 
 func TestQueryBool(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/active", func(w http.ResponseWriter, r *http.Request) {
 		active := QueryBool(r, "active")
 		JSON(w, http.StatusOK, map[string]bool{"active": active})
@@ -384,7 +384,7 @@ func TestQueryBool(t *testing.T) {
 }
 
 func TestQuerySlice(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/tags", func(w http.ResponseWriter, r *http.Request) {
 		tags := QuerySlice(r, "tag")
 		JSON(w, http.StatusOK, map[string][]string{"tags": tags})
@@ -402,7 +402,7 @@ func TestQuerySlice(t *testing.T) {
 }
 
 func TestServerShutdown(t *testing.T) {
-	s := New(WithAddr(":0"))
+	s := New(&Options{Addr: ":0"})
 
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
@@ -415,14 +415,14 @@ func TestServerShutdown(t *testing.T) {
 }
 
 func TestServerAddr(t *testing.T) {
-	s := New(WithAddr(":9999"))
+	s := New(&Options{Addr: ":9999"})
 	if s.Addr() != ":9999" {
 		t.Errorf("expected addr :9999, got %s", s.Addr())
 	}
 }
 
 func TestMiddlewareOrder(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	var order []string
 
@@ -463,7 +463,7 @@ func TestMiddlewareOrder(t *testing.T) {
 }
 
 func TestJSONResponse(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/json", func(w http.ResponseWriter, r *http.Request) {
 		JSON(w, http.StatusOK, map[string]string{"message": "hello"})
 	})
@@ -489,7 +489,7 @@ func TestJSONResponse(t *testing.T) {
 }
 
 func TestTextResponse(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/text", func(w http.ResponseWriter, r *http.Request) {
 		Text(w, http.StatusOK, "hello world")
 	})
@@ -513,7 +513,7 @@ func TestTextResponse(t *testing.T) {
 }
 
 func TestNoContentResponse(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.DELETE("/resource", func(w http.ResponseWriter, r *http.Request) {
 		NoContent(w)
 	})
@@ -532,7 +532,7 @@ func TestNoContentResponse(t *testing.T) {
 }
 
 func TestHTMLResponse(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/html", func(w http.ResponseWriter, r *http.Request) {
 		HTML(w, http.StatusOK, "<h1>Hello</h1>")
 	})
@@ -548,7 +548,7 @@ func TestHTMLResponse(t *testing.T) {
 }
 
 func TestRedirect(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/old", func(w http.ResponseWriter, r *http.Request) {
 		Redirect(w, r, "/new", http.StatusMovedPermanently)
 	})
@@ -568,7 +568,7 @@ func TestRedirect(t *testing.T) {
 }
 
 func TestStream(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/stream", func(w http.ResponseWriter, r *http.Request) {
 		reader := strings.NewReader("streaming content")
 		Stream(w, "text/plain", reader)
@@ -584,7 +584,7 @@ func TestStream(t *testing.T) {
 }
 
 func TestBlob(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/blob", func(w http.ResponseWriter, r *http.Request) {
 		Blob(w, http.StatusOK, MIMEApplicationOctetStream, []byte{0x01, 0x02, 0x03})
 	})
@@ -618,7 +618,7 @@ func TestErrorResponses(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			s := New()
+			s := New(nil)
 			s.GET("/test", func(w http.ResponseWriter, r *http.Request) {
 				tc.handler(w)
 			})
@@ -644,7 +644,7 @@ func TestGenericHandler(t *testing.T) {
 		Name string `json:"name"`
 	}
 
-	s := New()
+	s := New(nil)
 	s.GET("/users/{id}", Handle(func(ctx context.Context, req GetUserRequest) (*User, error) {
 		return &User{ID: req.ID, Name: "John"}, nil
 	}))
@@ -666,7 +666,7 @@ func TestGenericHandler(t *testing.T) {
 func TestGenericHandlerWithError(t *testing.T) {
 	type Request struct{}
 
-	s := New()
+	s := New(nil)
 	s.GET("/error", Handle(func(ctx context.Context, req Request) (any, error) {
 		return nil, ErrNotFound.WithDetailf("resource not found")
 	}))
@@ -697,7 +697,7 @@ func TestGenericHandlerWithJSONBody(t *testing.T) {
 		Email string `json:"email"`
 	}
 
-	s := New()
+	s := New(nil)
 	s.POST("/users", Handle(func(ctx context.Context, req CreateUserRequest) (*User, error) {
 		return &User{ID: 1, Name: req.Name, Email: req.Email}, nil
 	}))
@@ -723,7 +723,7 @@ func TestHandleNoRequest(t *testing.T) {
 		Status string `json:"status"`
 	}
 
-	s := New()
+	s := New(nil)
 	s.GET("/health", HandleNoRequest(func(ctx context.Context) (*Health, error) {
 		return &Health{Status: "ok"}, nil
 	}))
@@ -742,7 +742,7 @@ func TestHandleNoResponse(t *testing.T) {
 		ID int `path:"id"`
 	}
 
-	s := New()
+	s := New(nil)
 	s.DELETE("/items/{id}", HandleNoResponse(func(ctx context.Context, req DeleteRequest) error {
 		return nil
 	}))
@@ -757,7 +757,7 @@ func TestHandleNoResponse(t *testing.T) {
 }
 
 func TestHandleEmpty(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.POST("/ping", HandleEmpty(func(ctx context.Context) error {
 		return nil
 	}))
@@ -823,7 +823,7 @@ func TestBindPath(t *testing.T) {
 		ID int `path:"id"`
 	}
 
-	s := New()
+	s := New(nil)
 	var boundReq GetUser
 
 	s.GET("/users/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -875,7 +875,7 @@ func TestBindWithAllSources(t *testing.T) {
 		Name   string `json:"name"`
 	}
 
-	s := New()
+	s := New(nil)
 	var boundReq Request
 
 	s.POST("/items/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -915,7 +915,7 @@ func TestBindWithAllSources(t *testing.T) {
 }
 
 func TestRouteGroups(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	api := s.Group("/api")
 	api.GET("/users", func(w http.ResponseWriter, r *http.Request) {
@@ -952,7 +952,7 @@ func TestRouteGroups(t *testing.T) {
 }
 
 func TestRouteGroupWithMiddleware(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	headerValue := ""
 	authMW := func(next http.Handler) http.Handler {
@@ -1037,7 +1037,7 @@ func TestValidatable(t *testing.T) {
 }
 
 func BenchmarkRouterLookup(b *testing.B) {
-	s := New()
+	s := New(nil)
 	s.GET("/users", func(w http.ResponseWriter, r *http.Request) {})
 	s.GET("/users/{id}", func(w http.ResponseWriter, r *http.Request) {})
 	s.GET("/users/{id}/posts", func(w http.ResponseWriter, r *http.Request) {})
@@ -1055,7 +1055,7 @@ func BenchmarkRouterLookup(b *testing.B) {
 }
 
 func BenchmarkJSONResponse(b *testing.B) {
-	s := New()
+	s := New(nil)
 	s.GET("/json", func(w http.ResponseWriter, r *http.Request) {
 		JSON(w, http.StatusOK, map[string]string{"message": "hello", "status": "ok"})
 	})
@@ -1072,7 +1072,7 @@ func BenchmarkJSONResponse(b *testing.B) {
 }
 
 func BenchmarkMiddlewareChain(b *testing.B) {
-	s := New()
+	s := New(nil)
 
 	// Add 5 middleware
 	for i := 0; i < 5; i++ {
@@ -1142,7 +1142,7 @@ func BenchmarkGenericHandler(b *testing.B) {
 		Name string `json:"name"`
 	}
 
-	s := New()
+	s := New(nil)
 	s.GET("/users/{id}", Handle(func(ctx context.Context, req Req) (*Res, error) {
 		return &Res{ID: req.ID, Name: "John"}, nil
 	}))
@@ -1159,7 +1159,7 @@ func BenchmarkGenericHandler(b *testing.B) {
 }
 
 func BenchmarkParamExtraction(b *testing.B) {
-	s := New()
+	s := New(nil)
 	s.GET("/users/{id}/posts/{postID}/comments/{commentID}", func(w http.ResponseWriter, r *http.Request) {
 		Param(r, "id")
 		Param(r, "postID")
@@ -1180,9 +1180,10 @@ func BenchmarkParamExtraction(b *testing.B) {
 
 // Test for TLS options
 func TestWithTLS(t *testing.T) {
-	s := New(
-		WithTLS("cert.pem", "key.pem"),
-	)
+	s := New(&Options{
+		TLSCertFile: "cert.pem",
+		TLSKeyFile:  "key.pem",
+	})
 
 	cfg := s.GetConfig()
 	if cfg.TLSCertFile != "cert.pem" {
@@ -1195,9 +1196,9 @@ func TestWithTLS(t *testing.T) {
 
 // Test for MaxHeaderBytes option
 func TestWithMaxHeaderBytes(t *testing.T) {
-	s := New(
-		WithMaxHeaderBytes(1 << 20),
-	)
+	s := New(&Options{
+		MaxHeaderBytes: 1 << 20,
+	})
 
 	cfg := s.GetConfig()
 	if cfg.MaxHeaderBytes != 1<<20 {
@@ -1207,7 +1208,7 @@ func TestWithMaxHeaderBytes(t *testing.T) {
 
 // Test static file serving pattern
 func TestStaticRoutePattern(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	// Just test that Static doesn't panic
 	defer func() {
@@ -1221,7 +1222,7 @@ func TestStaticRoutePattern(t *testing.T) {
 
 // Test Any method
 func TestAny(t *testing.T) {
-	s := New()
+	s := New(nil)
 	called := 0
 
 	s.Any("/any", func(w http.ResponseWriter, r *http.Request) {
@@ -1270,7 +1271,7 @@ func TestInvalidRoutePatterns(t *testing.T) {
 				}
 			}()
 
-			s := New()
+			s := New(nil)
 			s.GET(tc.pattern, func(w http.ResponseWriter, r *http.Request) {})
 		})
 	}
@@ -1284,7 +1285,7 @@ func TestNilHandlerPanic(t *testing.T) {
 		}
 	}()
 
-	s := New()
+	s := New(nil)
 	s.GET("/test", nil)
 }
 
@@ -1430,7 +1431,7 @@ func TestFullRequestFlow(t *testing.T) {
 		Priority   string `json:"priority"`
 	}
 
-	s := New()
+	s := New(nil)
 
 	s.POST("/customers/{customerID}/orders", Handle(func(ctx context.Context, req CreateOrderRequest) (*Order, error) {
 		if req.APIKey == "" {
@@ -1472,7 +1473,7 @@ func TestFullRequestFlow(t *testing.T) {
 
 // Test file download helper
 func TestFileServing(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/download", func(w http.ResponseWriter, r *http.Request) {
 		Attachment(w, "report.pdf")
 		Blob(w, http.StatusOK, "application/pdf", []byte("fake pdf content"))
@@ -1490,7 +1491,7 @@ func TestFileServing(t *testing.T) {
 
 // Test streaming response
 func TestStreamingResponse(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/stream", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 		for i := 0; i < 3; i++ {

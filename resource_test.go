@@ -11,7 +11,7 @@ import (
 )
 
 func TestResourceBuilder_List(t *testing.T) {
-	s := New()
+	s := New(nil)
 	called := false
 
 	s.Resource("/users").List(func(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +32,7 @@ func TestResourceBuilder_List(t *testing.T) {
 }
 
 func TestResourceBuilder_Create(t *testing.T) {
-	s := New()
+	s := New(nil)
 	called := false
 
 	s.Resource("/users").Create(func(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +53,7 @@ func TestResourceBuilder_Create(t *testing.T) {
 }
 
 func TestResourceBuilder_Get(t *testing.T) {
-	s := New()
+	s := New(nil)
 	var gotID string
 
 	s.Resource("/users").Get(func(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +71,7 @@ func TestResourceBuilder_Get(t *testing.T) {
 }
 
 func TestResourceBuilder_Update(t *testing.T) {
-	s := New()
+	s := New(nil)
 	var gotID string
 
 	s.Resource("/users").Update(func(w http.ResponseWriter, r *http.Request) {
@@ -89,7 +89,7 @@ func TestResourceBuilder_Update(t *testing.T) {
 }
 
 func TestResourceBuilder_Patch(t *testing.T) {
-	s := New()
+	s := New(nil)
 	called := false
 
 	s.Resource("/users").Patch(func(w http.ResponseWriter, r *http.Request) {
@@ -107,7 +107,7 @@ func TestResourceBuilder_Patch(t *testing.T) {
 }
 
 func TestResourceBuilder_Delete(t *testing.T) {
-	s := New()
+	s := New(nil)
 	var gotID string
 
 	s.Resource("/users").Delete(func(w http.ResponseWriter, r *http.Request) {
@@ -128,7 +128,7 @@ func TestResourceBuilder_Delete(t *testing.T) {
 }
 
 func TestResourceBuilder_Custom(t *testing.T) {
-	s := New()
+	s := New(nil)
 	called := false
 
 	s.Resource("/users").Custom(http.MethodPost, "/{id}/archive", func(w http.ResponseWriter, r *http.Request) {
@@ -150,7 +150,7 @@ func TestResourceBuilder_Custom(t *testing.T) {
 }
 
 func TestResourceBuilder_CRUD(t *testing.T) {
-	s := New()
+	s := New(nil)
 	calls := make(map[string]bool)
 
 	s.Resource("/posts").CRUD(
@@ -191,7 +191,7 @@ func TestResourceBuilder_CRUD(t *testing.T) {
 }
 
 func TestResourceBuilder_ReadOnly(t *testing.T) {
-	s := New()
+	s := New(nil)
 	calls := make(map[string]bool)
 
 	s.Resource("/items").ReadOnly(
@@ -225,7 +225,7 @@ func TestResourceBuilder_ReadOnly(t *testing.T) {
 }
 
 func TestResourceBuilder_Chaining(t *testing.T) {
-	s := New()
+	s := New(nil)
 	calls := make(map[string]bool)
 
 	s.Resource("/articles").
@@ -261,7 +261,7 @@ func TestResourceBuilder_Chaining(t *testing.T) {
 }
 
 func TestResourceBuilder_WithMiddleware(t *testing.T) {
-	s := New()
+	s := New(nil)
 	middlewareCalled := false
 
 	mw := func(next http.Handler) http.Handler {
@@ -285,7 +285,7 @@ func TestResourceBuilder_WithMiddleware(t *testing.T) {
 }
 
 func TestResourceBuilder_Aliases(t *testing.T) {
-	s := New()
+	s := New(nil)
 	calls := make(map[string]bool)
 
 	s.Resource("/widgets").
@@ -317,7 +317,7 @@ func TestResourceBuilder_Aliases(t *testing.T) {
 }
 
 func TestGroupResource(t *testing.T) {
-	s := New()
+	s := New(nil)
 	var gotID string
 
 	api := s.Group("/api/v1")
@@ -339,7 +339,7 @@ func TestGroupResource(t *testing.T) {
 }
 
 func TestServer_Routes(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.GET("/users", func(w http.ResponseWriter, r *http.Request) {})
 	s.POST("/users", func(w http.ResponseWriter, r *http.Request) {})
@@ -371,7 +371,7 @@ func TestServer_Routes(t *testing.T) {
 }
 
 func TestServer_PrintRoutes(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.GET("/users", func(w http.ResponseWriter, r *http.Request) {})
 	s.POST("/users", func(w http.ResponseWriter, r *http.Request) {})

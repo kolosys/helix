@@ -177,7 +177,7 @@ s.Group("/user", middleware.CachePrivate(3600))
 ## Example
 
 ```go
-s := helix.New()
+s := helix.New(nil)
 
 // Global: no cache by default
 s.Use(middleware.NoCache())

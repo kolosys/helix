@@ -91,7 +91,7 @@ func getUser(ctx context.Context, id int) (User, error) {
 ### Basic Server
 
 ```go
-s := helix.New()
+s := helix.New(nil)
 ```
 
 ### Default Server (with middleware)
@@ -99,23 +99,24 @@ s := helix.New()
 Includes `RequestID`, `Logger` (dev format), and `Recover` middleware:
 
 ```go
-s := helix.Default()
+s := helix.Default(nil)
 ```
 
 ### Server with Options
 
 ```go
-s := helix.New(
-    helix.WithAddr(":3000"),
-    helix.WithReadTimeout(30 * time.Second),
-    helix.WithWriteTimeout(30 * time.Second),
-    helix.WithIdleTimeout(120 * time.Second),
-    helix.WithGracePeriod(30 * time.Second),
-    helix.WithBasePath("/api/v1"),
-    helix.WithTLS("cert.pem", "key.pem"),
-    helix.WithErrorHandler(customErrorHandler),
-    helix.HideBanner(),
-)
+s := helix.New(&helix.Options{
+    Addr:         ":3000",
+    ReadTimeout:  30 * time.Second,
+    WriteTimeout: 30 * time.Second,
+    IdleTimeout:  120 * time.Second,
+    GracePeriod:  30 * time.Second,
+    BasePath:     "/api/v1",
+    TLSCertFile:  "cert.pem",
+    TLSKeyFile:   "key.pem",
+    ErrorHandler: customErrorHandler,
+    HideBanner:   true,
+})
 ```
 
 ## Routing
@@ -950,20 +951,23 @@ s.PrintRoutes(os.Stdout)
 
 ## Configuration Options
 
-| Option                  | Description                           | Default    |
-| ----------------------- | ------------------------------------- | ---------- |
-| `WithAddr(addr)`        | Server listen address                 | `:8080`    |
-| `WithReadTimeout(d)`    | Maximum duration for reading request  | `30s`      |
-| `WithWriteTimeout(d)`   | Maximum duration for writing response | `30s`      |
-| `WithIdleTimeout(d)`    | Maximum time to wait for next request | `120s`     |
-| `WithGracePeriod(d)`    | Shutdown grace period                 | `30s`      |
-| `WithMaxHeaderBytes(n)` | Maximum size of request headers       | Go default |
-| `WithBasePath(path)`    | Base path prefix for all routes       | `""`       |
-| `WithTLS(cert, key)`    | Enable TLS with certificate files     | Disabled   |
-| `WithTLSConfig(cfg)`    | Custom TLS configuration              | `nil`      |
-| `WithErrorHandler(h)`   | Custom error handler                  | RFC 7807   |
-| `HideBanner()`          | Hide startup banner                   | Shown      |
-| `WithCustomBanner(b)`   | Custom startup banner                 | Default    |
+Configure the server using the `Options` struct:
+
+| Field              | Type                | Description                           | Default    |
+| ------------------ | ------------------- | ------------------------------------- | ---------- |
+| `Addr`             | `string`            | Server listen address                 | `:8080`    |
+| `ReadTimeout`      | `time.Duration`     | Maximum duration for reading request  | `30s`      |
+| `WriteTimeout`     | `time.Duration`     | Maximum duration for writing response | `30s`      |
+| `IdleTimeout`      | `time.Duration`     | Maximum time to wait for next request | `120s`     |
+| `GracePeriod`      | `time.Duration`     | Shutdown grace period                 | `30s`      |
+| `MaxHeaderBytes`   | `int`               | Maximum size of request headers       | `0` (none) |
+| `BasePath`         | `string`            | Base path prefix for all routes       | `""`       |
+| `TLSCertFile`      | `string`            | Path to TLS certificate file          | `""`       |
+| `TLSKeyFile`       | `string`            | Path to TLS key file                  | `""`       |
+| `TLSConfig`        | `*tls.Config`       | Custom TLS configuration              | `nil`      |
+| `ErrorHandler`     | `ErrorHandler`      | Custom error handler                  | RFC 7807   |
+| `HideBanner`       | `bool`              | Hide startup banner                   | `false`    |
+| `Banner`           | `string`            | Custom startup banner                 | Default    |
 
 ## Examples
 

@@ -149,7 +149,7 @@ s.Use(middleware.RateLimitWithConfig(middleware.RateLimitConfig{
 ## Example
 
 ```go
-s := helix.New()
+s := helix.New(nil)
 
 // Global rate limit: 100 req/s, burst of 10
 s.Use(middleware.RateLimit(100, 10))

@@ -11,7 +11,7 @@ import (
 )
 
 func TestCtx_Param(t *testing.T) {
-	s := New()
+	s := New(nil)
 	var gotID string
 
 	s.GET("/users/{id}", HandleCtx(func(c *Ctx) error {
@@ -32,7 +32,7 @@ func TestCtx_Param(t *testing.T) {
 }
 
 func TestCtx_ParamInt(t *testing.T) {
-	s := New()
+	s := New(nil)
 	var gotID int
 
 	s.GET("/users/{id}", HandleCtx(func(c *Ctx) error {
@@ -54,7 +54,7 @@ func TestCtx_ParamInt(t *testing.T) {
 }
 
 func TestCtx_ParamInt_Invalid(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.GET("/users/{id}", HandleCtx(func(c *Ctx) error {
 		_, err := c.ParamInt("id")
@@ -74,7 +74,7 @@ func TestCtx_ParamInt_Invalid(t *testing.T) {
 }
 
 func TestCtx_Query(t *testing.T) {
-	s := New()
+	s := New(nil)
 	var gotQuery string
 
 	s.GET("/search", HandleCtx(func(c *Ctx) error {
@@ -92,7 +92,7 @@ func TestCtx_Query(t *testing.T) {
 }
 
 func TestCtx_QueryDefault(t *testing.T) {
-	s := New()
+	s := New(nil)
 	var gotQuery string
 
 	s.GET("/search", HandleCtx(func(c *Ctx) error {
@@ -110,7 +110,7 @@ func TestCtx_QueryDefault(t *testing.T) {
 }
 
 func TestCtx_QueryInt(t *testing.T) {
-	s := New()
+	s := New(nil)
 	var gotPage int
 
 	s.GET("/list", HandleCtx(func(c *Ctx) error {
@@ -128,7 +128,7 @@ func TestCtx_QueryInt(t *testing.T) {
 }
 
 func TestCtx_QueryBool(t *testing.T) {
-	s := New()
+	s := New(nil)
 	var gotActive bool
 
 	s.GET("/filter", HandleCtx(func(c *Ctx) error {
@@ -146,7 +146,7 @@ func TestCtx_QueryBool(t *testing.T) {
 }
 
 func TestCtx_QuerySlice(t *testing.T) {
-	s := New()
+	s := New(nil)
 	var gotTags []string
 
 	s.GET("/tags", HandleCtx(func(c *Ctx) error {
@@ -164,7 +164,7 @@ func TestCtx_QuerySlice(t *testing.T) {
 }
 
 func TestCtx_Header(t *testing.T) {
-	s := New()
+	s := New(nil)
 	var gotHeader string
 
 	s.GET("/auth", HandleCtx(func(c *Ctx) error {
@@ -188,7 +188,7 @@ func TestCtx_Bind(t *testing.T) {
 		Email string `json:"email"`
 	}
 
-	s := New()
+	s := New(nil)
 	var gotUser CreateUser
 
 	s.POST("/users", HandleCtx(func(c *Ctx) error {
@@ -213,7 +213,7 @@ func TestCtx_Bind(t *testing.T) {
 }
 
 func TestCtx_SetHeader(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.GET("/custom", HandleCtx(func(c *Ctx) error {
 		return c.SetHeader("X-Custom", "value").OK(map[string]string{"status": "ok"})
@@ -229,7 +229,7 @@ func TestCtx_SetHeader(t *testing.T) {
 }
 
 func TestCtx_SetCookie(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.GET("/login", HandleCtx(func(c *Ctx) error {
 		cookie := &http.Cookie{Name: "session", Value: "abc123"}
@@ -247,7 +247,7 @@ func TestCtx_SetCookie(t *testing.T) {
 }
 
 func TestCtx_JSON(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.GET("/json", HandleCtx(func(c *Ctx) error {
 		return c.JSON(http.StatusOK, map[string]string{"message": "hello"})
@@ -267,7 +267,7 @@ func TestCtx_JSON(t *testing.T) {
 }
 
 func TestCtx_OK(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.GET("/ok", HandleCtx(func(c *Ctx) error {
 		return c.OK(map[string]string{"status": "ok"})
@@ -283,7 +283,7 @@ func TestCtx_OK(t *testing.T) {
 }
 
 func TestCtx_Created(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.POST("/create", HandleCtx(func(c *Ctx) error {
 		return c.Created(map[string]int{"id": 1})
@@ -299,7 +299,7 @@ func TestCtx_Created(t *testing.T) {
 }
 
 func TestCtx_NoContent(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.DELETE("/delete", HandleCtx(func(c *Ctx) error {
 		return c.NoContent()
@@ -315,7 +315,7 @@ func TestCtx_NoContent(t *testing.T) {
 }
 
 func TestCtx_Text(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.GET("/text", HandleCtx(func(c *Ctx) error {
 		return c.Text(http.StatusOK, "hello world")
@@ -331,7 +331,7 @@ func TestCtx_Text(t *testing.T) {
 }
 
 func TestCtx_HTML(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.GET("/html", HandleCtx(func(c *Ctx) error {
 		return c.HTML(http.StatusOK, "<h1>Hello</h1>")
@@ -348,7 +348,7 @@ func TestCtx_HTML(t *testing.T) {
 }
 
 func TestCtx_Problem(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.GET("/error", HandleCtx(func(c *Ctx) error {
 		return c.Problem(ErrNotFound.WithDetailf("resource not found"))
@@ -368,7 +368,7 @@ func TestCtx_Problem(t *testing.T) {
 }
 
 func TestCtx_Redirect(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.GET("/old", HandleCtx(func(c *Ctx) error {
 		c.Redirect("/new", http.StatusMovedPermanently)
@@ -388,7 +388,7 @@ func TestCtx_Redirect(t *testing.T) {
 }
 
 func TestCtx_ErrorResponse(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.GET("/bad", HandleCtx(func(c *Ctx) error {
 		return c.BadRequest("invalid input")
@@ -404,7 +404,7 @@ func TestCtx_ErrorResponse(t *testing.T) {
 }
 
 func TestCtx_Context(t *testing.T) {
-	s := New()
+	s := New(nil)
 	var gotCtx context.Context
 
 	s.GET("/ctx", HandleCtx(func(c *Ctx) error {
@@ -422,7 +422,7 @@ func TestCtx_Context(t *testing.T) {
 }
 
 func TestCtx_Attachment(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.GET("/download", HandleCtx(func(c *Ctx) error {
 		return c.Attachment("file.pdf").Blob(http.StatusOK, MIMEApplicationPDF, []byte("content"))
@@ -439,7 +439,7 @@ func TestCtx_Attachment(t *testing.T) {
 }
 
 func TestCtx_ChainedSetHeader(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.GET("/headers", HandleCtx(func(c *Ctx) error {
 		return c.SetHeader("X-One", "1").
@@ -464,7 +464,7 @@ func TestCtx_ChainedSetHeader(t *testing.T) {
 }
 
 func TestHandleCtx_ReturnsError(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	s.GET("/error", HandleCtx(func(c *Ctx) error {
 		return NotFoundf("user %d not found", 123)
@@ -484,7 +484,7 @@ func TestHandleCtx_ReturnsError(t *testing.T) {
 }
 
 func BenchmarkCtx_ParamAccess(b *testing.B) {
-	s := New()
+	s := New(nil)
 	s.GET("/users/{id}", HandleCtx(func(c *Ctx) error {
 		c.Param("id")
 		return c.NoContent()
@@ -502,7 +502,7 @@ func BenchmarkCtx_ParamAccess(b *testing.B) {
 }
 
 func BenchmarkCtx_QueryAccess(b *testing.B) {
-	s := New()
+	s := New(nil)
 	s.GET("/search", HandleCtx(func(c *Ctx) error {
 		c.Query("q")
 		c.QueryInt("page", 1)

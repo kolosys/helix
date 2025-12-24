@@ -58,20 +58,20 @@ Return Entry to Pool
 Create a logger with default settings:
 
 ```go
-log := logs.New()
+log := logs.New(nil)
 log.Info("server started", logs.Int("port", 8080))
 ```
 
 Create a logger with options:
 
 ```go
-log := logs.New(
-    logs.WithLevel(logs.DebugLevel),
-    logs.WithFormatter(&logs.JSONFormatter{}),
-    logs.WithOutput(os.Stdout),
-    logs.WithCaller(),
-    logs.WithAsync(1024),
-)
+log := logs.New(&logs.Options{
+    Level:           logs.DebugLevel,
+    Formatter:       &logs.JSONFormatter{},
+    Output:          os.Stdout,
+    AddCaller:       true,
+    AsyncBufferSize: 1024,
+})
 ```
 
 ### Log Levels
@@ -147,7 +147,7 @@ reqLog.Error("request failed", logs.Err(err))  // Also includes request_id and u
 ```go
 import "github.com/kolosys/helix/logs"
 
-log := logs.New()
+log := logs.New(nil)
 
 log.Info("server started", logs.Int("port", 8080))
 log.Warn("deprecated API used", logs.String("endpoint", "/old"))
@@ -157,11 +157,11 @@ log.Error("request failed", logs.Err(err))
 ### JSON Logging for Production
 
 ```go
-log := logs.New(
-    logs.WithLevel(logs.InfoLevel),
-    logs.WithFormatter(&logs.JSONFormatter{}),
-    logs.WithOutput(os.Stdout),
-)
+log := logs.New(&logs.Options{
+    Level:     logs.InfoLevel,
+    Formatter: &logs.JSONFormatter{},
+    Output:    os.Stdout,
+})
 
 log.Info("user created",
     logs.String("user_id", "123"),
@@ -173,14 +173,14 @@ log.Info("user created",
 ### Development Logging
 
 ```go
-log := logs.New(
-    logs.WithLevel(logs.DebugLevel),
-    logs.WithFormatter(&logs.TextFormatter{
+log := logs.New(&logs.Options{
+    Level: logs.DebugLevel,
+    Formatter: &logs.TextFormatter{
         DisableColors: false,
         FullTimestamp: true,
-    }),
-    logs.WithCaller(),
-)
+    },
+    AddCaller: true,
+})
 
 log.Debug("processing request",
     logs.String("method", "GET"),
@@ -208,10 +208,10 @@ log.InfoContext(ctx, "request processed",
 Use async logging for high-throughput scenarios:
 
 ```go
-log := logs.New(
-    logs.WithAsync(1024),  // Buffer size
-    logs.WithFormatter(&logs.JSONFormatter{}),
-)
+log := logs.New(&logs.Options{
+    AsyncBufferSize: 1024, // Buffer size
+    Formatter:       &logs.JSONFormatter{},
+})
 
 // Logs are written asynchronously
 log.Info("high volume log", logs.Int("count", 1000))
@@ -222,12 +222,12 @@ log.Info("high volume log", logs.Int("count", 1000))
 Use sampling to reduce log volume:
 
 ```go
-sampler := logs.NewRateSampler(100, time.Second)  // 100 logs per second
+sampler := logs.NewRateSampler(100, time.Second) // 100 logs per second
 
-log := logs.New(
-    logs.WithSampler(sampler),
-    logs.WithFormatter(&logs.JSONFormatter{}),
-)
+log := logs.New(&logs.Options{
+    Sampler:   sampler,
+    Formatter: &logs.JSONFormatter{},
+})
 
 // Only 100 logs per second will be written
 for i := 0; i < 10000; i++ {
@@ -251,9 +251,9 @@ func (h *metricsHook) Fire(entry *logs.Entry) error {
     return nil
 }
 
-log := logs.New(
-    logs.WithHooks(&metricsHook{}),
-)
+log := logs.New(&logs.Options{
+    Hooks: []logs.Hook{&metricsHook{}},
+})
 ```
 
 ## Design Decisions
@@ -303,8 +303,8 @@ Context-aware logging provides:
 **Solution**: Always close async loggers:
 
 ```go
-log := logs.New(logs.WithAsync(1024))
-defer log.Close()  // Flushes pending logs
+log := logs.New(&logs.Options{AsyncBufferSize: 1024})
+defer log.Close() // Flushes pending logs
 
 log.Info("message")
 // Logger must be closed to ensure message is written
@@ -317,11 +317,11 @@ log.Info("message")
 **Solution**: Ensure logger lifecycle matches application:
 
 ```go
-log := logs.New(logs.WithAsync(1024))
+log := logs.New(&logs.Options{AsyncBufferSize: 1024})
 
 // In shutdown handler
 s.OnStop(func(ctx context.Context, s *helix.Server) {
-    log.Close()  // Flush logs before shutdown
+    log.Close() // Flush logs before shutdown
     // Don't log after this point
 })
 ```
@@ -348,10 +348,10 @@ log.Info("message", logs.Int("count", 42))
 
 ```go
 // Development
-log := logs.New(logs.WithLevel(logs.DebugLevel))
+log := logs.New(&logs.Options{Level: logs.DebugLevel})
 
 // Production
-log := logs.New(logs.WithLevel(logs.InfoLevel))
+log := logs.New(&logs.Options{Level: logs.InfoLevel})
 ```
 
 ## Integration Guide
@@ -363,7 +363,7 @@ Helix middleware automatically uses the logs package:
 ```go
 import "github.com/kolosys/helix/middleware"
 
-s := helix.New()
+s := helix.New(nil)
 s.Use(middleware.Logger(middleware.LogFormatJSON))
 ```
 
@@ -401,7 +401,9 @@ func (h *prometheusHook) Fire(entry *logs.Entry) error {
     return nil
 }
 
-log := logs.New(logs.WithHooks(&prometheusHook{counter: errorCounter}))
+log := logs.New(&logs.Options{
+    Hooks: []logs.Hook{&prometheusHook{counter: errorCounter}},
+})
 ```
 
 ### With External Services

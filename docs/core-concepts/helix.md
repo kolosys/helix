@@ -47,7 +47,7 @@ HTTP Response
 
 ### Design Patterns
 
-- **Functional Options**: Configuration via option functions
+- **Struct-Based Options**: Configuration via Options struct
 - **Middleware Chain**: Composable request/response processing
 - **Dependency Injection**: Type-safe service registry
 - **Module Pattern**: Organize routes into modules
@@ -61,10 +61,10 @@ Helix provides two ways to create a server:
 
 ```go
 // Basic server (no middleware)
-s := helix.New()
+s := helix.New(nil)
 
 // Default server (includes RequestID, Logger, Recover)
-s := helix.Default()
+s := helix.Default(nil)
 ```
 
 ### Handler Types
@@ -163,7 +163,7 @@ Helix has zero external dependencies because:
 
 ### API Design Choices
 
-- **Functional Options**: Type-safe, extensible configuration
+- **Struct-Based Options**: Type-safe, extensible configuration
 - **Generic Handlers**: Compile-time type checking
 - **Fluent API**: Chainable methods for readability
 - **Error Returns**: Explicit error handling
@@ -188,7 +188,7 @@ import (
 )
 
 func main() {
-    s := helix.Default()
+    s := helix.Default(nil)
 
     s.GET("/", func(w http.ResponseWriter, r *http.Request) {
         helix.OK(w, map[string]string{"message": "Hello, World!"})
@@ -201,7 +201,7 @@ func main() {
 ### RESTful API
 
 ```go
-s := helix.Default()
+s := helix.Default(nil)
 
 api := s.Group("/api/v1")
 
@@ -236,12 +236,12 @@ s.Mount("/api/v1/users", &UserModule{service: userService})
 ### Production Server
 
 ```go
-s := helix.New(
-    helix.WithAddr(":8080"),
-    helix.WithReadTimeout(30 * time.Second),
-    helix.WithWriteTimeout(30 * time.Second),
-    helix.WithGracePeriod(30 * time.Second),
-)
+s := helix.New(&helix.Options{
+    Addr:         ":8080",
+    ReadTimeout:  30 * time.Second,
+    WriteTimeout: 30 * time.Second,
+    GracePeriod:  30 * time.Second,
+})
 
 // Production middleware
 for _, mw := range middleware.Production() {

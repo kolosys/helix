@@ -113,7 +113,7 @@ s.Use(middleware.BasicAuthWithConfig(middleware.BasicAuthConfig{
 ## Example
 
 ```go
-s := helix.New()
+s := helix.New(nil)
 
 // Protect admin routes
 admin := s.Group("/admin", middleware.BasicAuth("admin", "secret"))

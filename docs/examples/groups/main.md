@@ -43,9 +43,9 @@ var productsV2 = []ProductV2{
 }
 
 func main() {
-	s := helix.Default(
-		helix.WithAddr(":8080"),
-	)
+	s := helix.Default(&helix.Options{
+		Addr: ":8080",
+	})
 
 	// Public routes (no prefix)
 	s.GET("/", helix.HandleCtx(func(c *helix.Ctx) error {

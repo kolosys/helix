@@ -77,18 +77,30 @@ type Server struct {
 }
 
 // New creates a new Server with the provided options.
-func New(opts ...Option) *Server {
-	s := &Server{
-		router:       newRouter(),
-		addr:         ":8080",
-		readTimeout:  30 * time.Second,
-		writeTimeout: 30 * time.Second,
-		idleTimeout:  120 * time.Second,
-		gracePeriod:  30 * time.Second,
+// If opts is nil, default options will be used.
+func New(opts *Options) *Server {
+	if opts == nil {
+		opts = &Options{}
 	}
 
-	for _, opt := range opts {
-		opt(s)
+	// Apply defaults for zero-valued fields
+	opts.applyDefaults()
+
+	s := &Server{
+		router:         newRouter(),
+		addr:           opts.Addr,
+		readTimeout:    opts.ReadTimeout,
+		writeTimeout:   opts.WriteTimeout,
+		idleTimeout:    opts.IdleTimeout,
+		gracePeriod:    opts.GracePeriod,
+		maxHeaderBytes: opts.MaxHeaderBytes,
+		tlsCertFile:    opts.TLSCertFile,
+		tlsKeyFile:     opts.TLSKeyFile,
+		tlsConfig:      opts.TLSConfig,
+		hideBanner:     opts.HideBanner,
+		banner:         opts.Banner,
+		errorHandler:   opts.ErrorHandler,
+		basePath:       opts.BasePath,
 	}
 
 	if s.banner == "" && !s.hideBanner {
@@ -100,8 +112,9 @@ func New(opts ...Option) *Server {
 
 // Default creates a new Server with sensible defaults for development.
 // It includes RequestID, Logger (dev format), and Recover middleware.
-func Default(opts ...Option) *Server {
-	s := New(opts...)
+// If opts is nil, default options will be used.
+func Default(opts *Options) *Server {
+	s := New(opts)
 	s.Use(middleware.RequestID())
 	s.Use(middleware.Logger(middleware.LogFormatDev))
 	s.Use(middleware.Recover())
@@ -109,8 +122,8 @@ func Default(opts ...Option) *Server {
 }
 
 // Start starts the server and blocks until shutdown.
-// If an address is provided, it will be used instead of the WithAddr option.
-// If the address is not provided and the WithAddr option is not set, it will use ":8080".
+// If an address is provided, it will override the Addr option.
+// If the address is not provided and the Addr option is not set, it will use ":8080".
 // This is a convenience method that calls Run with a background context.
 func (s *Server) Start(addr ...string) error {
 	if len(addr) > 0 {

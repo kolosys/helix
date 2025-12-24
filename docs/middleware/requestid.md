@@ -42,7 +42,7 @@ requestID := middleware.GetRequestID(r.Context())
 ## Example
 
 ```go
-s := helix.New()
+s := helix.New(nil)
 
 // Use default RequestID middleware
 s.Use(middleware.RequestID())

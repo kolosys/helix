@@ -109,7 +109,7 @@ ETag: "abc123def456"
 ## Example
 
 ```go
-s := helix.New()
+s := helix.New(nil)
 
 // Enable ETag for all GET requests
 s.Use(middleware.ETag())

@@ -104,7 +104,7 @@ s.GET("/process", helix.HandleCtx(func(c *helix.Ctx) error {
 ## Example
 
 ```go
-s := helix.New()
+s := helix.New(nil)
 
 // Global timeout: 30 seconds
 s.Use(middleware.Timeout(30 * time.Second))

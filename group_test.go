@@ -9,7 +9,7 @@ import (
 )
 
 func TestGroupBasic(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	api := s.Group("/api")
 	api.GET("/users", func(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +29,7 @@ func TestGroupBasic(t *testing.T) {
 }
 
 func TestGroupNested(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	api := s.Group("/api")
 	v1 := api.Group("/v1")
@@ -64,7 +64,7 @@ func TestGroupNested(t *testing.T) {
 }
 
 func TestGroupMiddleware(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	var middlewareCalled bool
 	mw := func(next http.Handler) http.Handler {
@@ -89,7 +89,7 @@ func TestGroupMiddleware(t *testing.T) {
 }
 
 func TestGroupUse(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	var order []string
 
@@ -128,7 +128,7 @@ func TestGroupUse(t *testing.T) {
 }
 
 func TestGroupNestedMiddleware(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	var order []string
 
@@ -169,7 +169,7 @@ func TestGroupNestedMiddleware(t *testing.T) {
 }
 
 func TestGroupAllMethods(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	api := s.Group("/api")
 
@@ -208,7 +208,7 @@ func TestGroupAllMethods(t *testing.T) {
 }
 
 func TestGroupAny(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	api := s.Group("/api")
 	api.Any("/any", func(w http.ResponseWriter, r *http.Request) {
@@ -234,7 +234,7 @@ func TestGroupAny(t *testing.T) {
 }
 
 func TestGroupHandle(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	api := s.Group("/api")
 	api.Handle(http.MethodGet, "/custom", func(w http.ResponseWriter, r *http.Request) {
@@ -251,7 +251,7 @@ func TestGroupHandle(t *testing.T) {
 }
 
 func TestGroupStatic(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	api := s.Group("/api")
 
@@ -266,7 +266,7 @@ func TestGroupStatic(t *testing.T) {
 }
 
 func TestGroupWithParams(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	users := s.Group("/users")
 	users.GET("/{id}", func(w http.ResponseWriter, r *http.Request) {
@@ -302,7 +302,7 @@ func TestGroupWithParams(t *testing.T) {
 }
 
 func TestGroupNoMiddleware(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	// Group without middleware
 	api := s.Group("/api")
@@ -320,7 +320,7 @@ func TestGroupNoMiddleware(t *testing.T) {
 }
 
 func BenchmarkGroup(b *testing.B) {
-	s := New()
+	s := New(nil)
 
 	api := s.Group("/api")
 	v1 := api.Group("/v1")
@@ -340,7 +340,7 @@ func BenchmarkGroup(b *testing.B) {
 }
 
 func BenchmarkGroupWithMiddleware(b *testing.B) {
-	s := New()
+	s := New(nil)
 
 	mw := func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

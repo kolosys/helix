@@ -109,12 +109,12 @@ func main() {
 		helix.HandleErrorDefault(w, r, err)
 	}
 
-	s := helix.Default(
-		helix.WithAddr(":8080"),
-		helix.WithErrorHandler(customErrorHandler),
+	s := helix.Default(&helix.Options{
+		Addr:         ":8080",
+		ErrorHandler: customErrorHandler,
 		// Uncomment to add a base path prefix to all routes:
-		// helix.WithBasePath("/api/v1"),
-	)
+		// BasePath: "/api/v1",
+	})
 
 	// List users - GET /users?page=1&limit=10
 	s.GET("/users", helix.Handle(func(ctx context.Context, req ListUsersRequest) (ListUsersResponse, error) {

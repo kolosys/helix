@@ -15,7 +15,7 @@ import (
 )
 
 func TestNewLogger(t *testing.T) {
-	log := New()
+	log := New(nil)
 	if log == nil {
 		t.Fatal("expected logger")
 	}
@@ -26,11 +26,11 @@ func TestNewLogger(t *testing.T) {
 
 func TestLoggerWithOptions(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithLevel(DebugLevel),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Level:     DebugLevel,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	log.Debug("test message")
 
@@ -58,11 +58,11 @@ func TestLogLevels(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.level.String(), func(t *testing.T) {
 			buf := &bytes.Buffer{}
-			log := New(
-				WithOutput(buf),
-				WithLevel(TraceLevel),
-				WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-			)
+			log := New(&Options{
+				Output:    buf,
+				Level:     TraceLevel,
+				Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+			})
 
 			tc.method(log, "test")
 
@@ -76,11 +76,11 @@ func TestLogLevels(t *testing.T) {
 
 func TestLogLevelFiltering(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithLevel(WarnLevel),
-		WithFormatter(&TextFormatter{DisableTimestamp: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Level:     WarnLevel,
+		Formatter: &TextFormatter{DisableTimestamp: true},
+	})
 
 	log.Debug("debug message")
 	log.Info("info message")
@@ -100,10 +100,10 @@ func TestLogLevelFiltering(t *testing.T) {
 
 func TestLoggerFields(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	log.Info("test", String("key", "value"), Int("count", 42))
 
@@ -118,10 +118,10 @@ func TestLoggerFields(t *testing.T) {
 
 func TestLoggerWith(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	child := log.With(String("component", "test"))
 	child.Info("message")
@@ -134,11 +134,11 @@ func TestLoggerWith(t *testing.T) {
 
 func TestLoggerWithDefaultFields(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFields(String("app", "helix")),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Fields:    []Field{String("app", "helix")},
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	log.Info("test")
 
@@ -150,11 +150,11 @@ func TestLoggerWithDefaultFields(t *testing.T) {
 
 func TestLoggerWithCaller(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithCaller(),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		AddCaller: true,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	log.Info("test")
 
@@ -167,10 +167,10 @@ func TestLoggerWithCaller(t *testing.T) {
 
 func TestJSONFormatter(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&JSONFormatter{}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &JSONFormatter{},
+	})
 
 	log.Info("test message", String("key", "value"), Int("count", 42))
 
@@ -192,10 +192,10 @@ func TestJSONFormatter(t *testing.T) {
 
 func TestPrettyFormatter(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&PrettyFormatter{ShowTimestamp: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &PrettyFormatter{ShowTimestamp: true},
+	})
 
 	log.Info("test message", String("key", "value"))
 
@@ -259,10 +259,10 @@ func TestAnyField(t *testing.T) {
 
 func TestContextLogging(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	ctx := context.Background()
 	ctx = WithContextFields(ctx, String("request_id", "abc123"))
@@ -277,10 +277,10 @@ func TestContextLogging(t *testing.T) {
 
 func TestLoggerFromContext(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	ctx := context.Background()
 	ctx = WithLogger(ctx, log)
@@ -299,12 +299,12 @@ func TestHook(t *testing.T) {
 
 	hook := NewWriterHook(hookBuf, &TextFormatter{DisableTimestamp: true, DisableColors: true}, ErrorLevel)
 
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true}),
-		WithLevel(TraceLevel),
-		WithHooks(hook),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true},
+		Level:     TraceLevel,
+		Hooks:     []Hook{hook},
+	})
 
 	log.Info("info message")
 	log.Error("error message")
@@ -321,10 +321,10 @@ func TestHook(t *testing.T) {
 func TestMetricsHook(t *testing.T) {
 	metrics := NewMetricsHook()
 
-	log := New(
-		WithOutput(&bytes.Buffer{}),
-		WithHooks(metrics),
-	)
+	log := New(&Options{
+		Output: &bytes.Buffer{},
+		Hooks:  []Hook{metrics},
+	})
 
 	log.Info("one")
 	log.Info("two")
@@ -345,11 +345,11 @@ func TestMetricsHook(t *testing.T) {
 func TestErrorHook(t *testing.T) {
 	errorHook := NewErrorHook(10)
 
-	log := New(
-		WithOutput(&bytes.Buffer{}),
-		WithLevel(TraceLevel),
-		WithHooks(errorHook),
-	)
+	log := New(&Options{
+		Output: &bytes.Buffer{},
+		Level:  TraceLevel,
+		Hooks:  []Hook{errorHook},
+	})
 
 	log.Info("info")
 	log.Error("error 1")
@@ -363,11 +363,11 @@ func TestErrorHook(t *testing.T) {
 
 func TestSampler(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true}),
-		WithSampler(NewCountSampler(3)), // Log every 3rd message
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true},
+		Sampler:   NewCountSampler(3), // Log every 3rd message
+	})
 
 	for i := 0; i < 9; i++ {
 		log.Info("message")
@@ -421,11 +421,11 @@ func TestFirstNSampler(t *testing.T) {
 
 func TestAsyncLogging(t *testing.T) {
 	buf := &safeBuffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-		WithAsync(100),
-	)
+	log := New(&Options{
+		Output:          buf,
+		Formatter:       &TextFormatter{DisableTimestamp: true, DisableColors: true},
+		AsyncBufferSize: 100,
+	})
 
 	for i := 0; i < 10; i++ {
 		log.Info("async message", Int("i", i))
@@ -502,7 +502,9 @@ func TestLevelString(t *testing.T) {
 }
 
 func TestIsEnabled(t *testing.T) {
-	log := New(WithLevel(WarnLevel))
+	log := New(&Options{
+		Level: WarnLevel,
+	})
 
 	if log.IsEnabled(InfoLevel) {
 		t.Error("info should not be enabled")
@@ -517,10 +519,10 @@ func TestIsEnabled(t *testing.T) {
 
 func TestDefaultLogger(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true},
+	})
 	SetDefault(log)
 
 	Info("default logger")
@@ -530,15 +532,15 @@ func TestDefaultLogger(t *testing.T) {
 	}
 
 	// Reset default
-	SetDefault(New())
+	SetDefault(New(nil))
 }
 
 func TestWithHelper(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 	SetDefault(log)
 
 	child := With(String("component", "test"))
@@ -548,7 +550,7 @@ func TestWithHelper(t *testing.T) {
 		t.Errorf("expected component in output, got: %s", buf.String())
 	}
 
-	SetDefault(New())
+	SetDefault(New(nil))
 }
 
 func TestFilterHook(t *testing.T) {
@@ -560,10 +562,10 @@ func TestFilterHook(t *testing.T) {
 		},
 	)
 
-	log := New(
-		WithOutput(&bytes.Buffer{}),
-		WithHooks(hook),
-	)
+	log := New(&Options{
+		Output: &bytes.Buffer{},
+		Hooks:  []Hook{hook},
+	})
 
 	log.Info("normal message")
 	log.Info("important message")
@@ -582,10 +584,10 @@ func TestFuncHook(t *testing.T) {
 		called = true
 	})
 
-	log := New(
-		WithOutput(&bytes.Buffer{}),
-		WithHooks(hook),
-	)
+	log := New(&Options{
+		Output: &bytes.Buffer{},
+		Hooks:  []Hook{hook},
+	})
 
 	log.Info("test")
 
@@ -673,10 +675,10 @@ func TestEntryMethods(t *testing.T) {
 }
 
 func BenchmarkLogNoFields(b *testing.B) {
-	log := New(
-		WithOutput(&bytes.Buffer{}),
-		WithFormatter(&NoopFormatter{}),
-	)
+	log := New(&Options{
+		Output:    &bytes.Buffer{},
+		Formatter: &NoopFormatter{},
+	})
 
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -687,10 +689,10 @@ func BenchmarkLogNoFields(b *testing.B) {
 }
 
 func BenchmarkLogWithFields(b *testing.B) {
-	log := New(
-		WithOutput(&bytes.Buffer{}),
-		WithFormatter(&NoopFormatter{}),
-	)
+	log := New(&Options{
+		Output:    &bytes.Buffer{},
+		Formatter: &NoopFormatter{},
+	})
 
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -705,10 +707,10 @@ func BenchmarkLogWithFields(b *testing.B) {
 }
 
 func BenchmarkLogTextFormatter(b *testing.B) {
-	log := New(
-		WithOutput(&bytes.Buffer{}),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    &bytes.Buffer{},
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -719,10 +721,10 @@ func BenchmarkLogTextFormatter(b *testing.B) {
 }
 
 func BenchmarkLogJSONFormatter(b *testing.B) {
-	log := New(
-		WithOutput(&bytes.Buffer{}),
-		WithFormatter(&JSONFormatter{}),
-	)
+	log := New(&Options{
+		Output:    &bytes.Buffer{},
+		Formatter: &JSONFormatter{},
+	})
 
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -747,10 +749,10 @@ func BenchmarkFieldCreation(b *testing.B) {
 
 func TestChainableBuilder(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	log.Build().
 		Str("user", "john").
@@ -772,10 +774,10 @@ func TestChainableBuilder(t *testing.T) {
 
 func TestBuilderWithAuto(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	log.Build().
 		With("user", "john").
@@ -794,10 +796,10 @@ func TestBuilderWithAuto(t *testing.T) {
 
 func TestFHelper(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	log.F("name", "alice", "age", 25).Info("created")
 
@@ -863,10 +865,10 @@ func TestVField(t *testing.T) {
 
 func TestIfErr(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	// Should not log when error is nil
 	log.IfErr(nil).With("key", "value").Error("should not log")
@@ -887,10 +889,10 @@ func TestIfErr(t *testing.T) {
 
 func TestWrapErr(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	originalErr := errors.New("connection refused")
 	wrapped := log.WrapErr(originalErr, "failed to connect", String("host", "localhost"))
@@ -913,10 +915,10 @@ func TestWrapErr(t *testing.T) {
 
 func TestLogErr(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	// Should not log when nil
 	log.LogErr(nil, "should not log")
@@ -933,10 +935,10 @@ func TestLogErr(t *testing.T) {
 
 func TestCheckErr(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	if log.CheckErr(nil, "no error") {
 		t.Error("CheckErr should return false for nil error")
@@ -949,10 +951,10 @@ func TestCheckErr(t *testing.T) {
 
 func TestPrintfMethods(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	log.Infof("user %s created with id %d", "john", 123)
 
@@ -964,11 +966,11 @@ func TestPrintfMethods(t *testing.T) {
 
 func TestPrintfAllLevels(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithLevel(TraceLevel),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Level:     TraceLevel,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	log.Tracef("trace %d", 1)
 	log.Debugf("debug %d", 2)
@@ -986,10 +988,10 @@ func TestPrintfAllLevels(t *testing.T) {
 
 func TestPrintCompat(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	log.Print("hello", " ", "world")
 	log.Println("line 2")
@@ -1006,14 +1008,14 @@ func TestPrintCompat(t *testing.T) {
 
 func TestNamedLogger(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&NamedFormatter{
+	log := New(&Options{
+		Output: buf,
+		Formatter: &NamedFormatter{
 			Inner:     &TextFormatter{DisableTimestamp: true, DisableColors: true},
 			Separator: " ",
 			Brackets:  "[]",
-		}),
-	)
+		},
+	})
 
 	userLog := log.Named("users")
 	userLog.Info("created")
@@ -1026,14 +1028,14 @@ func TestNamedLogger(t *testing.T) {
 
 func TestNestedNamedLogger(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&NamedFormatter{
+	log := New(&Options{
+		Output: buf,
+		Formatter: &NamedFormatter{
 			Inner:     &TextFormatter{DisableTimestamp: true, DisableColors: true},
 			Separator: " ",
 			Brackets:  "[]",
-		}),
-	)
+		},
+	})
 
 	userLog := log.Named("users")
 	authLog := userLog.Named("auth")
@@ -1046,7 +1048,7 @@ func TestNestedNamedLogger(t *testing.T) {
 }
 
 func TestLoggerGetName(t *testing.T) {
-	log := New()
+	log := New(nil)
 	userLog := log.Named("users")
 	authLog := userLog.Named("auth")
 
@@ -1059,7 +1061,7 @@ func TestLoggerGetName(t *testing.T) {
 }
 
 func TestLoggerNameParts(t *testing.T) {
-	log := New()
+	log := New(nil)
 	authLog := log.Named("users").Named("auth").Named("oauth")
 
 	parts := authLog.NameParts()
@@ -1072,7 +1074,7 @@ func TestLoggerNameParts(t *testing.T) {
 }
 
 func TestComponentAlias(t *testing.T) {
-	log := New()
+	log := New(nil)
 	compLog := log.Component("database")
 
 	if compLog.GetName() != "database" {
@@ -1100,10 +1102,10 @@ func TestErrChain(t *testing.T) {
 
 func TestBuilderWithContext(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	ctx := context.Background()
 	ctx = WithContextFields(ctx, String("request_id", "req-123"))
@@ -1121,10 +1123,10 @@ func TestBuilderWithContext(t *testing.T) {
 
 func TestBuilderWithError(t *testing.T) {
 	buf := &bytes.Buffer{}
-	log := New(
-		WithOutput(buf),
-		WithFormatter(&TextFormatter{DisableTimestamp: true, DisableColors: true}),
-	)
+	log := New(&Options{
+		Output:    buf,
+		Formatter: &TextFormatter{DisableTimestamp: true, DisableColors: true},
+	})
 
 	err := errors.New("test error")
 	log.Build().
@@ -1139,10 +1141,10 @@ func TestBuilderWithError(t *testing.T) {
 }
 
 func BenchmarkBuilder(b *testing.B) {
-	log := New(
-		WithOutput(&bytes.Buffer{}),
-		WithFormatter(&NoopFormatter{}),
-	)
+	log := New(&Options{
+		Output:    &bytes.Buffer{},
+		Formatter: &NoopFormatter{},
+	})
 
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -1157,10 +1159,10 @@ func BenchmarkBuilder(b *testing.B) {
 }
 
 func BenchmarkFHelper(b *testing.B) {
-	log := New(
-		WithOutput(&bytes.Buffer{}),
-		WithFormatter(&NoopFormatter{}),
-	)
+	log := New(&Options{
+		Output:    &bytes.Buffer{},
+		Formatter: &NoopFormatter{},
+	})
 
 	b.ResetTimer()
 	b.ReportAllocs()
@@ -1171,10 +1173,10 @@ func BenchmarkFHelper(b *testing.B) {
 }
 
 func BenchmarkPrintf(b *testing.B) {
-	log := New(
-		WithOutput(&bytes.Buffer{}),
-		WithFormatter(&NoopFormatter{}),
-	)
+	log := New(&Options{
+		Output:    &bytes.Buffer{},
+		Formatter: &NoopFormatter{},
+	})
 
 	b.ResetTimer()
 	b.ReportAllocs()

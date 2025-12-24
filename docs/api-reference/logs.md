@@ -21,7 +21,7 @@ Features:
 
 Basic usage:
 
-	log := logs.New()
+	log := logs.New(nil)
 	log.Info("server started", logs.Int("port", 8080))
 
 With context:

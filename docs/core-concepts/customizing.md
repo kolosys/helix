@@ -4,35 +4,36 @@
 
 ## About Customization
 
-Helix is designed to be highly customizable while maintaining sensible defaults. You can customize server configuration, error handling, middleware, and more through the functional options pattern and extension points.
+Helix is designed to be highly customizable while maintaining sensible defaults. You can customize server configuration, error handling, middleware, and more through the struct-based options pattern and extension points.
 
 ## Core Concepts
 
-### Functional Options Pattern
+### Struct-Based Options Pattern
 
-Helix uses the functional options pattern for configuration. This provides:
+Helix uses the struct-based options pattern for configuration. This provides:
 
 - **Type Safety**: Compile-time checking of configuration
-- **Flexibility**: Options can be applied in any order
+- **Clarity**: All options are clearly defined in a single struct
 - **Extensibility**: Easy to add new options without breaking changes
 - **Readability**: Clear, self-documenting configuration
 
 ### Server Options
 
-All server customization happens through `Option` functions passed to `helix.New()` or `helix.Default()`:
+All server customization happens through the `Options` struct passed to `helix.New()` or `helix.Default()`:
 
 ```go
-s := helix.New(
-    helix.WithAddr(":3000"),
-    helix.WithReadTimeout(30 * time.Second),
-    helix.WithWriteTimeout(30 * time.Second),
-    helix.WithIdleTimeout(120 * time.Second),
-    helix.WithGracePeriod(30 * time.Second),
-    helix.WithBasePath("/api/v1"),
-    helix.WithTLS("cert.pem", "key.pem"),
-    helix.WithErrorHandler(customErrorHandler),
-    helix.HideBanner(),
-)
+s := helix.New(&helix.Options{
+    Addr:         ":3000",
+    ReadTimeout:  30 * time.Second,
+    WriteTimeout: 30 * time.Second,
+    IdleTimeout:  120 * time.Second,
+    GracePeriod:  30 * time.Second,
+    BasePath:     "/api/v1",
+    TLSCertFile:  "cert.pem",
+    TLSKeyFile:   "key.pem",
+    ErrorHandler: customErrorHandler,
+    HideBanner:   true,
+})
 ```
 
 ## Architecture Overview
@@ -60,34 +61,35 @@ Helix provides several extension points:
 #### Address and Timeouts
 
 ```go
-s := helix.New(
-    helix.WithAddr(":3000"),                    // Listen address
-    helix.WithReadTimeout(30 * time.Second),    // Request read timeout
-    helix.WithWriteTimeout(30 * time.Second),   // Response write timeout
-    helix.WithIdleTimeout(120 * time.Second),  // Keep-alive timeout
-    helix.WithGracePeriod(30 * time.Second),    // Shutdown grace period
-    helix.WithMaxHeaderBytes(1 << 20),          // Max header size (1MB)
-)
+s := helix.New(&helix.Options{
+    Addr:           ":3000",           // Listen address
+    ReadTimeout:    30 * time.Second,  // Request read timeout
+    WriteTimeout:   30 * time.Second,  // Response write timeout
+    IdleTimeout:    120 * time.Second, // Keep-alive timeout
+    GracePeriod:    30 * time.Second,  // Shutdown grace period
+    MaxHeaderBytes: 1 << 20,           // Max header size (1MB)
+})
 ```
 
 #### TLS Configuration
 
 ```go
 // Simple TLS with certificate files
-s := helix.New(
-    helix.WithTLS("cert.pem", "key.pem"),
-)
+s := helix.New(&helix.Options{
+    TLSCertFile: "cert.pem",
+    TLSKeyFile:  "key.pem",
+})
 
 // Advanced TLS configuration
-s := helix.New(
-    helix.WithTLSConfig(&tls.Config{
+s := helix.New(&helix.Options{
+    TLSConfig: &tls.Config{
         MinVersion: tls.VersionTLS12,
         CipherSuites: []uint16{
             tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
             tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
         },
-    }),
-)
+    },
+})
 ```
 
 #### Base Path
@@ -95,9 +97,9 @@ s := helix.New(
 Set a prefix for all routes:
 
 ```go
-s := helix.New(
-    helix.WithBasePath("/api/v1"),
-)
+s := helix.New(&helix.Options{
+    BasePath: "/api/v1",
+})
 
 // Route "/users" becomes "/api/v1/users"
 s.GET("/users", handler)
@@ -127,9 +129,9 @@ func customErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
     }
 }
 
-s := helix.New(
-    helix.WithErrorHandler(customErrorHandler),
-)
+s := helix.New(&helix.Options{
+    ErrorHandler: customErrorHandler,
+})
 ```
 
 #### Error Handler Middleware
@@ -157,7 +159,7 @@ func loggingErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 Add middleware that applies to all routes:
 
 ```go
-s := helix.New()
+s := helix.New(nil)
 
 // Add middleware
 s.Use(middleware.RequestID())
@@ -260,19 +262,21 @@ s.OnStop(func(ctx context.Context, s *helix.Server) {
 #### Hide Banner
 
 ```go
-s := helix.New(helix.HideBanner())
+s := helix.New(&helix.Options{
+    HideBanner: true,
+})
 ```
 
 #### Custom Banner
 
 ```go
-s := helix.New(
-    helix.WithCustomBanner(`
+s := helix.New(&helix.Options{
+    Banner: `
     ╔═══════════════════════════╗
     ║   My Awesome API v1.0.0   ║
     ╚═══════════════════════════╝
-    `),
-)
+    `,
+})
 ```
 
 ## Usage Patterns
@@ -280,27 +284,28 @@ s := helix.New(
 ### Development Server
 
 ```go
-s := helix.Default(
-    helix.WithAddr(":8080"),
-    helix.HideBanner(),  // Cleaner output in dev
-)
+s := helix.Default(&helix.Options{
+    Addr:       ":8080",
+    HideBanner: true, // Cleaner output in dev
+})
 
 // Development middleware
 s.Use(middleware.Logger(middleware.LogFormatDev))
-s.Use(middleware.CORSAllowAll())  // Allow all origins in dev
+s.Use(middleware.CORSAllowAll()) // Allow all origins in dev
 ```
 
 ### Production Server
 
 ```go
-s := helix.New(
-    helix.WithAddr(":8080"),
-    helix.WithReadTimeout(30 * time.Second),
-    helix.WithWriteTimeout(30 * time.Second),
-    helix.WithIdleTimeout(120 * time.Second),
-    helix.WithGracePeriod(30 * time.Second),
-    helix.WithTLS("cert.pem", "key.pem"),
-)
+s := helix.New(&helix.Options{
+    Addr:         ":8080",
+    ReadTimeout:  30 * time.Second,
+    WriteTimeout: 30 * time.Second,
+    IdleTimeout:  120 * time.Second,
+    GracePeriod:  30 * time.Second,
+    TLSCertFile:  "cert.pem",
+    TLSKeyFile:   "key.pem",
+})
 
 // Production middleware bundle
 for _, mw := range middleware.Production() {
@@ -320,10 +325,10 @@ s.OnStop(func(ctx context.Context, s *helix.Server) {
 ### API Server with Base Path
 
 ```go
-s := helix.New(
-    helix.WithBasePath("/api/v1"),
-    helix.WithErrorHandler(apiErrorHandler),
-)
+s := helix.New(&helix.Options{
+    BasePath:     "/api/v1",
+    ErrorHandler: apiErrorHandler,
+})
 
 // API middleware bundle
 for _, mw := range middleware.API() {
@@ -331,18 +336,18 @@ for _, mw := range middleware.API() {
 }
 
 // Routes are automatically prefixed
-s.GET("/users", listUsers)  // Becomes /api/v1/users
+s.GET("/users", listUsers) // Becomes /api/v1/users
 ```
 
 ## Design Decisions
 
-### Functional Options Pattern
+### Struct-Based Options Pattern
 
-Helix uses functional options instead of a config struct because:
+Helix uses a struct-based options pattern because:
 
-- **Backward Compatibility**: New options don't break existing code
+- **Clarity**: All available options are visible in one place
 - **Type Safety**: Compile-time checking prevents invalid configurations
-- **Flexibility**: Options can be conditionally applied
+- **Simplicity**: Easy to understand and use
 - **Readability**: Self-documenting configuration code
 
 ### Error Handler Injection
@@ -371,13 +376,13 @@ Lifecycle hooks are separate from server options because:
 
 ```go
 // ❌ Wrong - base path set after routes
-s := helix.New()
+s := helix.New(nil)
 s.GET("/users", handler)
-s.WithBasePath("/api")  // Too late!
+// Cannot set base path after creation
 
 // ✅ Correct - set options first
-s := helix.New(helix.WithBasePath("/api"))
-s.GET("/users", handler)  // Route is /api/users
+s := helix.New(&helix.Options{BasePath: "/api"})
+s.GET("/users", handler) // Route is /api/users
 ```
 
 ### Pitfall 2: Error Handler Not Handling All Types
@@ -435,7 +440,7 @@ s.OnStop(func(ctx context.Context, s *helix.Server) {
 Customize service registration:
 
 ```go
-s := helix.New()
+s := helix.New(nil)
 
 // Register global services
 helix.Register(userService)
@@ -454,14 +459,14 @@ Integrate with Helix's logging package:
 ```go
 import "github.com/kolosys/helix/logs"
 
-s := helix.New()
+s := helix.New(nil)
 
 // Configure logger
-log := logs.New(
-    logs.WithLevel(logs.InfoLevel),
-    logs.WithFormatter(&logs.JSONFormatter{}),
-    logs.WithCaller(),
-)
+log := logs.New(&logs.Options{
+    Level:     logs.InfoLevel,
+    Formatter: &logs.JSONFormatter{},
+    AddCaller: true,
+})
 
 // Use in lifecycle hooks
 s.OnStart(func(s *helix.Server) {

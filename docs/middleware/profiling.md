@@ -103,7 +103,7 @@ import (
 )
 
 func main() {
-    s := helix.New()
+    s := helix.New(nil)
 
     // Profile middleware
     s.Use(middleware.ProfileMiddleware("requestid", middleware.RequestID()))

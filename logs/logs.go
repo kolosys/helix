@@ -50,12 +50,83 @@ type Logger struct {
 	sampler     Sampler
 }
 
-// New creates a new Logger with default settings.
-func New(opts ...Option) *Logger {
+// Options configures a Logger.
+type Options struct {
+	// Output is the writer where logs are written.
+	// Default is os.Stdout.
+	Output io.Writer
+
+	// Level is the minimum log level.
+	// Default is InfoLevel.
+	Level Level
+
+	// Formatter sets the log output format.
+	// Default is TextFormatter.
+	Formatter Formatter
+
+	// AddCaller enables caller information in logs.
+	// Default is false.
+	AddCaller bool
+
+	// CallerDepth sets the caller stack depth.
+	// Default is 2.
+	CallerDepth int
+
+	// AddStack enables stack traces for error and above.
+	// Default is false.
+	AddStack bool
+
+	// AsyncBufferSize enables asynchronous logging with the specified buffer size.
+	// If 0, synchronous logging is used.
+	// If > 0, async logging is enabled with the specified buffer size.
+	// Default is 0 (synchronous).
+	AsyncBufferSize int
+
+	// Hooks are additional hooks to add to the logger.
+	Hooks []Hook
+
+	// Fields are default fields to include in all log entries.
+	Fields []Field
+
+	// Sampler is used for rate limiting logs.
+	Sampler Sampler
+}
+
+// applyDefaults applies default values to nil or zero-valued options.
+func (o *Options) applyDefaults() {
+	if o.Output == nil {
+		o.Output = os.Stdout
+	}
+	if o.Formatter == nil {
+		o.Formatter = &TextFormatter{}
+	}
+	if o.CallerDepth == 0 {
+		o.CallerDepth = 2
+	}
+	// Level defaults to InfoLevel (0), but 0 is also a valid level (DebugLevel)
+	// so we can't distinguish between "not set" and "explicitly set to DebugLevel"
+	// We'll handle this in the New function
+}
+
+// New creates a new Logger with the provided options.
+// If opts is nil, default options will be used.
+func New(opts *Options) *Logger {
+	if opts == nil {
+		opts = &Options{}
+	}
+
+	// Apply defaults
+	opts.applyDefaults()
+
 	l := &Logger{
-		output:      os.Stdout,
-		formatter:   &TextFormatter{},
-		callerDepth: 2,
+		output:      opts.Output,
+		formatter:   opts.Formatter,
+		callerDepth: opts.CallerDepth,
+		addCaller:   opts.AddCaller,
+		addStack:    opts.AddStack,
+		hooks:       opts.Hooks,
+		fields:      opts.Fields,
+		sampler:     opts.Sampler,
 		entryPool: &sync.Pool{
 			New: func() any {
 				return &Entry{
@@ -64,98 +135,23 @@ func New(opts ...Option) *Logger {
 			},
 		},
 	}
-	l.level.Store(int32(InfoLevel))
 
-	for _, opt := range opts {
-		opt(l)
+	// Set level (default to InfoLevel if not specified)
+	if opts.Level == 0 {
+		l.level.Store(int32(InfoLevel))
+	} else {
+		l.level.Store(int32(opts.Level))
 	}
 
-	// Start async worker if enabled
-	if l.async {
-		if l.asyncCh == nil {
-			l.asyncCh = make(chan *Entry, 1024)
-		}
+	// Enable async if buffer size is set
+	if opts.AsyncBufferSize > 0 {
+		l.async = true
+		l.asyncCh = make(chan *Entry, opts.AsyncBufferSize)
 		l.asyncWg.Add(1)
 		go l.asyncWorker()
 	}
 
 	return l
-}
-
-// Option configures a Logger.
-type Option func(*Logger)
-
-// WithOutput sets the output writer.
-func WithOutput(w io.Writer) Option {
-	return func(l *Logger) {
-		l.output = w
-	}
-}
-
-// WithLevel sets the minimum log level.
-func WithLevel(level Level) Option {
-	return func(l *Logger) {
-		l.level.Store(int32(level))
-	}
-}
-
-// WithFormatter sets the log formatter.
-func WithFormatter(f Formatter) Option {
-	return func(l *Logger) {
-		l.formatter = f
-	}
-}
-
-// WithCaller enables caller information in logs.
-func WithCaller() Option {
-	return func(l *Logger) {
-		l.addCaller = true
-	}
-}
-
-// WithCallerDepth sets the caller stack depth.
-func WithCallerDepth(depth int) Option {
-	return func(l *Logger) {
-		l.callerDepth = depth
-	}
-}
-
-// WithStackTrace enables stack traces for error and above.
-func WithStackTrace() Option {
-	return func(l *Logger) {
-		l.addStack = true
-	}
-}
-
-// WithAsync enables asynchronous logging.
-func WithAsync(bufferSize int) Option {
-	return func(l *Logger) {
-		l.async = true
-		if bufferSize > 0 {
-			l.asyncCh = make(chan *Entry, bufferSize)
-		}
-	}
-}
-
-// WithHooks adds hooks to the logger.
-func WithHooks(hooks ...Hook) Option {
-	return func(l *Logger) {
-		l.hooks = append(l.hooks, hooks...)
-	}
-}
-
-// WithFields adds default fields to all log entries.
-func WithFields(fields ...Field) Option {
-	return func(l *Logger) {
-		l.fields = append(l.fields, fields...)
-	}
-}
-
-// WithSampler sets a sampler for rate limiting logs.
-func WithSampler(s Sampler) Option {
-	return func(l *Logger) {
-		l.sampler = s
-	}
 }
 
 // SetLevel sets the minimum log level.
@@ -475,7 +471,7 @@ func appendInt(buf []byte, n int) []byte {
 }
 
 // Default logger
-var defaultLogger = New()
+var defaultLogger = New(nil)
 
 // SetDefault sets the default logger.
 func SetDefault(l *Logger) {

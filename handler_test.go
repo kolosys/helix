@@ -16,7 +16,7 @@ func TestHandleWithStatus(t *testing.T) {
 		ID int `json:"id"`
 	}
 
-	s := New()
+	s := New(nil)
 	s.POST("/create", HandleWithStatus(http.StatusCreated, func(ctx context.Context, req Request) (*Response, error) {
 		return &Response{ID: 1}, nil
 	}))
@@ -33,7 +33,7 @@ func TestHandleWithStatus(t *testing.T) {
 func TestHandleWithStatusError(t *testing.T) {
 	type Request struct{}
 
-	s := New()
+	s := New(nil)
 	s.POST("/error", HandleWithStatus(http.StatusCreated, func(ctx context.Context, req Request) (any, error) {
 		return nil, ErrBadRequest.WithDetailf("invalid input")
 	}))
@@ -48,7 +48,7 @@ func TestHandleWithStatusError(t *testing.T) {
 }
 
 func TestHandleNoRequestError(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.GET("/error", HandleNoRequest(func(ctx context.Context) (any, error) {
 		return nil, ErrNotFound.WithDetailf("not found")
 	}))
@@ -67,7 +67,7 @@ func TestHandleNoResponseError(t *testing.T) {
 		ID int `path:"id"`
 	}
 
-	s := New()
+	s := New(nil)
 	s.DELETE("/items/{id}", HandleNoResponse(func(ctx context.Context, req Request) error {
 		return ErrForbidden.WithDetailf("cannot delete")
 	}))
@@ -82,7 +82,7 @@ func TestHandleNoResponseError(t *testing.T) {
 }
 
 func TestHandleEmptyError(t *testing.T) {
-	s := New()
+	s := New(nil)
 	s.POST("/fail", HandleEmpty(func(ctx context.Context) error {
 		return ErrInternal.WithDetailf("something went wrong")
 	}))
@@ -101,7 +101,7 @@ func TestHandleBindingError(t *testing.T) {
 		ID int `path:"id,required"`
 	}
 
-	s := New()
+	s := New(nil)
 	s.GET("/items/{id}", Handle(func(ctx context.Context, req Request) (any, error) {
 		return map[string]int{"id": req.ID}, nil
 	}))
@@ -119,7 +119,7 @@ func TestHandleBindingError(t *testing.T) {
 func TestHandleGenericError(t *testing.T) {
 	type Request struct{}
 
-	s := New()
+	s := New(nil)
 	s.GET("/error", Handle(func(ctx context.Context, req Request) (any, error) {
 		return nil, context.DeadlineExceeded // generic error
 	}))
@@ -135,7 +135,7 @@ func TestHandleGenericError(t *testing.T) {
 }
 
 func TestHandleWithValidatable(t *testing.T) {
-	s := New()
+	s := New(nil)
 
 	type ValidatableRequest struct {
 		Email string `json:"email"`
@@ -185,7 +185,7 @@ func TestIsBindingError(t *testing.T) {
 func TestHandleContextCancellation(t *testing.T) {
 	type Request struct{}
 
-	s := New()
+	s := New(nil)
 	s.GET("/slow", Handle(func(ctx context.Context, req Request) (any, error) {
 		select {
 		case <-ctx.Done():
@@ -213,7 +213,7 @@ func BenchmarkHandle(b *testing.B) {
 		Name string `json:"name"`
 	}
 
-	s := New()
+	s := New(nil)
 	s.GET("/users/{id}", Handle(func(ctx context.Context, req Request) (*Response, error) {
 		return &Response{ID: req.ID, Name: "John"}, nil
 	}))
@@ -235,7 +235,7 @@ func BenchmarkHandleWithStatus(b *testing.B) {
 		ID int `json:"id"`
 	}
 
-	s := New()
+	s := New(nil)
 	s.POST("/create", HandleWithStatus(http.StatusCreated, func(ctx context.Context, req Request) (*Response, error) {
 		return &Response{ID: 1}, nil
 	}))
@@ -256,7 +256,7 @@ func BenchmarkHandleNoRequest(b *testing.B) {
 		Status string `json:"status"`
 	}
 
-	s := New()
+	s := New(nil)
 	s.GET("/health", HandleNoRequest(func(ctx context.Context) (*Response, error) {
 		return &Response{Status: "ok"}, nil
 	}))

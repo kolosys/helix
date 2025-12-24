@@ -146,14 +146,17 @@ func (f *NamedFormatter) Format(entry *Entry) ([]byte, error) {
 	return f.Inner.Format(entry)
 }
 
-// WithNamedFormat wraps the current formatter to include logger names.
-func WithNamedFormat() Option {
-	return func(l *Logger) {
-		l.formatter = &NamedFormatter{
-			Inner:     l.formatter,
-			Separator: " ",
-			Brackets:  "[]",
-		}
+// WrapWithNamedFormat wraps a formatter to include logger names.
+// Use this with Options.Formatter to add logger names to your formatter.
+// Example: opts.Formatter = WrapWithNamedFormat(opts.Formatter)
+func WrapWithNamedFormat(inner Formatter) *NamedFormatter {
+	if inner == nil {
+		inner = &TextFormatter{}
+	}
+	return &NamedFormatter{
+		Inner:     inner,
+		Separator: " ",
+		Brackets:  "[]",
 	}
 }
 

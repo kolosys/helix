@@ -18,9 +18,9 @@ import (
 
 func main() {
 	// Create a server without default middleware
-	s := helix.New(
-		helix.WithAddr(":8080"),
-	)
+	s := helix.New(&helix.Options{
+		Addr: ":8080",
+	})
 
 	// Add global middleware in order - no explicit casting needed!
 	s.Use(middleware.RequestID())                     // Generate unique request IDs

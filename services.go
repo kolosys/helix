@@ -56,7 +56,8 @@ func Get[T any]() (T, bool) {
 func MustGet[T any]() T {
 	svc, ok := Get[T]()
 	if !ok {
-		t := reflect.TypeOf((*T)(nil)).Elem()
+		t := reflect.TypeFor[T]().Elem()
+
 		panic("helix: service not registered: " + t.String())
 	}
 	return svc

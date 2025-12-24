@@ -43,7 +43,7 @@ All Helix middleware is compatible with the standard `net/http` package and can 
 Add middleware to your server:
 
 ```go
-s := helix.New()
+s := helix.New(nil)
 
 // Add individual middleware
 s.Use(middleware.RequestID())
@@ -139,7 +139,7 @@ Includes: RequestID, Logger (combined), Recover
 
 ### Development Bundle
 
-Suitable for development (same as `helix.Default()`):
+Suitable for development (same as `helix.Default(nil)`):
 
 ```go
 for _, mw := range middleware.Development() {
@@ -308,7 +308,7 @@ s.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 Middleware integrates seamlessly with Helix:
 
 ```go
-s := helix.Default() // Already includes RequestID, Logger, Recover
+s := helix.Default(nil) // Already includes RequestID, Logger, Recover
 
 // Add more middleware
 s.Use(middleware.CORS())

@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-    s := helix.Default()
+    s := helix.Default(nil)
 
     s.GET("/", func(w http.ResponseWriter, r *http.Request) {
         helix.OK(w, map[string]string{"message": "Hello, World!"})
@@ -45,7 +45,7 @@ import (
 )
 
 func main() {
-    s := helix.Default()
+    s := helix.Default(nil)
 
     s.GET("/hello", helix.HandleCtx(func(c *helix.Ctx) error {
         name := c.QueryDefault("name", "World")
@@ -96,7 +96,7 @@ type User struct {
 }
 
 func main() {
-    s := helix.Default()
+    s := helix.Default(nil)
 
     s.POST("/users", helix.Handle(func(ctx context.Context, req CreateUserRequest) (User, error) {
         // req is automatically bound from JSON body
@@ -130,7 +130,7 @@ type User struct {
 }
 
 func main() {
-    s := helix.Default()
+    s := helix.Default(nil)
 
     // Simple handler
     s.GET("/", func(w http.ResponseWriter, r *http.Request) {

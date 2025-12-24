@@ -114,7 +114,7 @@ The middleware uses object pooling for compression writers to minimize allocatio
 ## Example
 
 ```go
-s := helix.New()
+s := helix.New(nil)
 
 // Basic compression
 s.Use(middleware.Compress())

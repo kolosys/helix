@@ -46,9 +46,9 @@ var (
 )
 
 func main() {
-	s := helix.Default(
-		helix.WithAddr(":8080"),
-	)
+	s := helix.Default(&helix.Options{
+		Addr: ":8080",
+	})
 
 	// Root endpoint
 	s.GET("/", helix.HandleCtx(func(c *helix.Ctx) error {
