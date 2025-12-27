@@ -2,6 +2,9 @@ package helix
 
 import (
 	"crypto/tls"
+	"net"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -62,6 +65,16 @@ type Options struct {
 	// For example, with base path "/api/v1", a route "/users" becomes "/api/v1/users".
 	// The base path should start with "/" but should not end with "/" (it will be normalized).
 	BasePath string
+
+	// AutoPort enables automatic port selection when the configured port is in use.
+	// When enabled, the server will try incrementing ports until it finds an available one.
+	// This is primarily useful for development environments.
+	// Default is false.
+	AutoPort bool
+
+	// MaxPortAttempts is the maximum number of ports to try when AutoPort is enabled.
+	// Default is 10.
+	MaxPortAttempts int
 }
 
 // applyDefaults applies default values to nil or zero-valued options.
@@ -81,4 +94,54 @@ func (o *Options) applyDefaults() {
 	if o.GracePeriod == 0 {
 		o.GracePeriod = 30 * time.Second
 	}
+	if o.MaxPortAttempts == 0 {
+		o.MaxPortAttempts = 10
+	}
+}
+
+// parseAddr parses an address into host and port components.
+func parseAddr(addr string) (host string, port int, err error) {
+	host, portStr, err := net.SplitHostPort(addr)
+	if err != nil {
+		// Handle addresses like ":8080" where host is empty
+		if strings.HasPrefix(addr, ":") {
+			host = ""
+			portStr = addr[1:]
+		} else {
+			return "", 0, err
+		}
+	}
+	port, err = strconv.Atoi(portStr)
+	if err != nil {
+		return "", 0, err
+	}
+	return host, port, nil
+}
+
+// isPortAvailable checks if a port is available for listening.
+func isPortAvailable(host string, port int) bool {
+	addr := net.JoinHostPort(host, strconv.Itoa(port))
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return false
+	}
+	ln.Close()
+	return true
+}
+
+// findAvailableAddr finds an available address starting from the given address.
+// If the port is in use, it increments the port and tries again up to maxAttempts times.
+func findAvailableAddr(addr string, maxAttempts int) (string, error) {
+	host, port, err := parseAddr(addr)
+	if err != nil {
+		return "", err
+	}
+
+	for i := 0; i < maxAttempts; i++ {
+		if isPortAvailable(host, port+i) {
+			return net.JoinHostPort(host, strconv.Itoa(port+i)), nil
+		}
+	}
+
+	return "", &net.AddrError{Err: "no available port found", Addr: addr}
 }

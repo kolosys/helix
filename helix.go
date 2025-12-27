@@ -45,17 +45,19 @@ type Server struct {
 	httpServer *http.Server
 
 	// Configuration
-	addr           string
-	readTimeout    time.Duration
-	writeTimeout   time.Duration
-	idleTimeout    time.Duration
-	gracePeriod    time.Duration
-	maxHeaderBytes int
-	tlsCertFile    string
-	tlsKeyFile     string
-	tlsConfig      *tls.Config
-	hideBanner     bool
-	banner         string
+	addr            string
+	readTimeout     time.Duration
+	writeTimeout    time.Duration
+	idleTimeout     time.Duration
+	gracePeriod     time.Duration
+	maxHeaderBytes  int
+	tlsCertFile     string
+	tlsKeyFile      string
+	tlsConfig       *tls.Config
+	hideBanner      bool
+	banner          string
+	autoPort        bool
+	maxPortAttempts int
 
 	// Lifecycle hooks
 	onStart []func(s *Server)
@@ -87,20 +89,22 @@ func New(opts *Options) *Server {
 	opts.applyDefaults()
 
 	s := &Server{
-		router:         newRouter(),
-		addr:           opts.Addr,
-		readTimeout:    opts.ReadTimeout,
-		writeTimeout:   opts.WriteTimeout,
-		idleTimeout:    opts.IdleTimeout,
-		gracePeriod:    opts.GracePeriod,
-		maxHeaderBytes: opts.MaxHeaderBytes,
-		tlsCertFile:    opts.TLSCertFile,
-		tlsKeyFile:     opts.TLSKeyFile,
-		tlsConfig:      opts.TLSConfig,
-		hideBanner:     opts.HideBanner,
-		banner:         opts.Banner,
-		errorHandler:   opts.ErrorHandler,
-		basePath:       opts.BasePath,
+		router:          newRouter(),
+		addr:            opts.Addr,
+		readTimeout:     opts.ReadTimeout,
+		writeTimeout:    opts.WriteTimeout,
+		idleTimeout:     opts.IdleTimeout,
+		gracePeriod:     opts.GracePeriod,
+		maxHeaderBytes:  opts.MaxHeaderBytes,
+		tlsCertFile:     opts.TLSCertFile,
+		tlsKeyFile:      opts.TLSKeyFile,
+		tlsConfig:       opts.TLSConfig,
+		hideBanner:      opts.HideBanner,
+		banner:          opts.Banner,
+		errorHandler:    opts.ErrorHandler,
+		basePath:        opts.BasePath,
+		autoPort:        opts.AutoPort,
+		maxPortAttempts: opts.MaxPortAttempts,
 	}
 
 	if s.banner == "" && !s.hideBanner {
@@ -250,6 +254,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // signal is received. It performs graceful shutdown, waiting for active connections
 // to finish within the grace period.
 func (s *Server) Run(ctx context.Context) error {
+	// If auto port is enabled, find an available port
+	if s.autoPort {
+		addr, err := findAvailableAddr(s.addr, s.maxPortAttempts)
+		if err != nil {
+			return fmt.Errorf("helix: failed to find available port: %w", err)
+		}
+		s.addr = addr
+	}
+
 	s.httpServer = &http.Server{
 		Addr:           s.addr,
 		Handler:        s,
