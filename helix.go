@@ -59,6 +59,9 @@ type Server struct {
 	autoPort        bool
 	maxPortAttempts int
 
+	// Logging
+	logOutput middleware.LogOutputFunc
+
 	// Lifecycle hooks
 	onStart []func(s *Server)
 	onStop  []func(ctx context.Context, s *Server)
@@ -105,6 +108,7 @@ func New(opts *Options) *Server {
 		basePath:        opts.BasePath,
 		autoPort:        opts.AutoPort,
 		maxPortAttempts: opts.MaxPortAttempts,
+		logOutput:       opts.LogOutput,
 	}
 
 	if s.banner == "" && !s.hideBanner {
@@ -115,12 +119,19 @@ func New(opts *Options) *Server {
 }
 
 // Default creates a new Server with sensible defaults for development.
-// It includes RequestID, Logger (dev format), and Recover middleware.
+// It includes RequestID, Logger (using logs package), and Recover middleware.
 // If opts is nil, default options will be used.
 func Default(opts *Options) *Server {
+	if opts == nil {
+		opts = &Options{}
+	}
+	opts.applyDefaults()
+
 	s := New(opts)
 	s.Use(middleware.RequestID())
-	s.Use(middleware.Logger(middleware.LogFormatDev))
+	s.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+		Output: opts.LogOutput,
+	}))
 	s.Use(middleware.Recover())
 	return s
 }
@@ -254,6 +265,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // signal is received. It performs graceful shutdown, waiting for active connections
 // to finish within the grace period.
 func (s *Server) Run(ctx context.Context) error {
+	if !s.hideBanner {
+		fmt.Println(strings.ReplaceAll(s.banner, "{version}", Version))
+	}
+
 	// If auto port is enabled, find an available port
 	if s.autoPort {
 		addr, err := findAvailableAddr(s.addr, s.maxPortAttempts)
@@ -271,10 +286,6 @@ func (s *Server) Run(ctx context.Context) error {
 		IdleTimeout:    s.idleTimeout,
 		MaxHeaderBytes: s.maxHeaderBytes,
 		TLSConfig:      s.tlsConfig,
-	}
-
-	if !s.hideBanner {
-		fmt.Println(strings.ReplaceAll(s.banner, "{version}", Version))
 	}
 
 	// Call onStart hooks

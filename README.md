@@ -869,58 +869,54 @@ s.GET("/health/ready", helix.ReadinessHandler(
 }
 ```
 
-## Logging
+## Request Logging
 
-Helix includes a high-performance structured logging library:
+Helix includes flexible request logging middleware with Morgan.js-style formats:
 
 ```go
-import "github.com/kolosys/helix/logs"
+import "github.com/kolosys/helix/middleware"
 
-// Basic usage
-logs.Info("server started", logs.Int("port", 8080))
-logs.Error("request failed", logs.Err(err), logs.String("path", "/api"))
+// Default dev format
+s := helix.Default(nil) // Includes Logger middleware
 
-// Create custom logger
-log := logs.New(
-    logs.WithLevel(logs.DebugLevel),
-    logs.WithFormatter(&logs.JSONFormatter{}),
-    logs.WithCaller(),
-    logs.WithAsync(1024),
-)
+// Custom format
+s.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+    Output: middleware.TextOutput(os.Stdout, middleware.LogFormatCombined),
+}))
 
-// Child logger with fields
-reqLog := log.With(logs.String("request_id", "abc123"))
-reqLog.Info("processing request")
+// JSON output
+s.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+    Output: middleware.TextOutputWithOptions(os.Stdout, middleware.LogFormatJSON, middleware.TextOutputOptions{
+        JSONPretty: true,
+    }),
+}))
 
-// Context-aware logging
-log.InfoContext(ctx, "user authenticated", logs.String("user_id", "123"))
+// Custom format string
+s.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+    Output: middleware.TextOutputCustom(os.Stdout, ":method :path :status :latency"),
+}))
 ```
 
-### Field Types
+### Log Formats
 
 ```go
-logs.String("key", "value")
-logs.Int("count", 42)
-logs.Int64("id", 123456789)
-logs.Float64("price", 99.99)
-logs.Bool("active", true)
-logs.Duration("latency", time.Since(start))
-logs.Time("timestamp", time.Now())
-logs.Err(err)
-logs.Any("data", complexStruct)
-logs.Stringer("ip", net.IP{...})
+middleware.LogFormatCombined  // Apache combined format
+middleware.LogFormatCommon    // Apache common format
+middleware.LogFormatDev       // Concise colored output (default)
+middleware.LogFormatShort     // Shorter than combined
+middleware.LogFormatTiny      // Minimal output
+middleware.LogFormatJSON      // JSON format
 ```
 
-### Log Levels
+### Application Logging
+
+For application logging, use the standard library:
 
 ```go
-logs.TraceLevel  // Most verbose
-logs.DebugLevel
-logs.InfoLevel   // Default
-logs.WarnLevel
-logs.ErrorLevel
-logs.FatalLevel  // Exits after logging
-logs.PanicLevel  // Panics after logging
+import "log"
+
+log.Printf("Server starting on %s", s.Addr())
+log.Println("Request processed")
 ```
 
 ## Lifecycle Hooks

@@ -364,15 +364,12 @@ func errorHandler(w http.ResponseWriter, r *http.Request, err error) {
 Log errors with context:
 
 ```go
-import "github.com/kolosys/helix/logs"
+import "log"
 
 s.GET("/users/{id}", helix.HandleCtx(func(c *helix.Ctx) error {
     user, err := userService.Get(c.Context(), c.Param("id"))
     if err != nil {
-        logs.ErrorContext(c.Context(), "failed to get user",
-            logs.Err(err),
-            logs.String("user_id", c.Param("id")),
-        )
+        log.Printf("failed to get user %s: %v", c.Param("id"), err)
         return helix.NotFoundf("user not found")
     }
     return c.OK(user)

@@ -19,137 +19,93 @@ type LogFormat string
 
 // Predefined log formats matching Morgan.js formats.
 const (
-	// LogFormatCombined is the Apache combined log format.
-	// :remote-addr - :remote-user [:date] ":method :url HTTP/:http-version" :status :res-length ":referrer" ":user-agent"
 	LogFormatCombined LogFormat = "combined"
-
-	// LogFormatCommon is the Apache common log format.
-	// :remote-addr - :remote-user [:date] ":method :url HTTP/:http-version" :status :res-length
-	LogFormatCommon LogFormat = "common"
-
-	// LogFormatDev is a colorized development format.
-	// :method :url :status :response-time ms - :res-length
-	LogFormatDev LogFormat = "dev"
-
-	// LogFormatShort is a shorter format.
-	// :remote-addr :method :url HTTP/:http-version :status :res-length - :response-time ms
-	LogFormatShort LogFormat = "short"
-
-	// LogFormatTiny is the minimal format.
-	// :method :url :status :res-length - :response-time ms
-	LogFormatTiny LogFormat = "tiny"
-
-	// LogFormatJSON outputs logs in JSON format.
-	LogFormatJSON LogFormat = "json"
+	LogFormatCommon   LogFormat = "common"
+	LogFormatDev      LogFormat = "dev"
+	LogFormatShort    LogFormat = "short"
+	LogFormatTiny     LogFormat = "tiny"
+	LogFormatJSON     LogFormat = "json"
 )
 
-// TokenExtractor is a function that extracts a value from the request.
-// It receives the request and the captured request body (if body capture is enabled).
+// LogValues contains all extracted request/response data for logging.
+type LogValues struct {
+	Method        string
+	Path          string
+	URI           string
+	Host          string
+	Protocol      string
+	RemoteIP      string
+	UserAgent     string
+	Referer       string
+	ContentLength int64
+	ContentType   string
+	Status        int
+	ResponseSize  int
+	Latency       time.Duration
+	Error         error
+	RequestID     string
+	StartTime     time.Time
+	Headers       map[string]string
+	QueryParams   map[string]string
+	FormValues    map[string]string
+	CustomFields  map[string]string
+}
+
+// LogOutputFunc is a callback that receives log values and outputs them.
+// This is the single output mechanism - use helpers for common formats.
+type LogOutputFunc func(v LogValues)
+
+// TokenExtractor extracts a custom value from the request.
 type TokenExtractor func(r *http.Request, body []byte) string
 
 // LoggerConfig configures the Logger middleware.
 type LoggerConfig struct {
-	// Format is the log format to use.
-	// Default: LogFormatDev
-	Format LogFormat
+	// Output is the callback that receives log values. Required.
+	// Use TextOutput() for Morgan.js-style formatting.
+	// Use helix.StructuredOutput() for logs package integration.
+	// Or provide your own function for custom logging.
+	Output LogOutputFunc
 
-	// CustomFormat is a custom format string using tokens.
-	// If set, Format is ignored (unless Format is LogFormatJSON).
-	CustomFormat string
-
-	// Output is the writer to output logs to.
-	// Default: os.Stdout
-	Output io.Writer
-
-	// Skip is a function that determines if logging should be skipped.
-	// If it returns true, the request is not logged.
+	// Skip determines if logging should be skipped for a request.
 	Skip func(r *http.Request) bool
 
-	// TimeFormat is the time format for the :date token.
-	// Default: time.RFC1123
-	TimeFormat string
-
 	// Fields maps custom field names to their sources.
-	// Sources can be:
-	//   - "header:X-Header-Name" - extracts from request header
-	//   - "query:param_name" - extracts from query parameter
-	//   - "cookie:cookie_name" - extracts from cookie
-	// Example: {"api_version": "header:X-API-Version", "page": "query:page"}
+	// Sources: "header:Name", "query:param", "cookie:name"
 	Fields map[string]string
 
-	// CustomTokens maps token names to extractor functions.
-	// These can extract data from the request body or perform custom logic.
-	// Token names should not include the leading colon.
-	// Example: {"user_id": func(r, body) string { ... }}
+	// CustomTokens maps names to extractor functions for body/context data.
 	CustomTokens map[string]TokenExtractor
 
-	// CaptureBody enables capturing the request body for custom token extraction.
-	// When enabled, the request body is read and stored for token extractors.
-	// Default: false (only enable if you need body-based custom tokens)
+	// LogHeaders specifies request headers to extract into Headers map.
+	LogHeaders []string
+
+	// LogQueryParams specifies query parameters to extract.
+	LogQueryParams []string
+
+	// LogFormValues specifies form values to extract.
+	LogFormValues []string
+
+	// CaptureBody enables request body capture for CustomTokens.
 	CaptureBody bool
 
-	// MaxBodySize is the maximum size of the request body to capture.
-	// Default: 64KB
+	// MaxBodySize limits captured body size. Default: 64KB.
 	MaxBodySize int64
-
-	// JSONFields specifies which fields to include in JSON output.
-	// If empty, a default set of fields is used.
-	// Fields can be standard tokens (without colon) or custom field names.
-	JSONFields []string
-
-	// JSONPretty enables pretty-printing for JSON output.
-	// Default: false
-	JSONPretty bool
-
-	// DisableColors disables ANSI color codes in output.
-	// Default: false
-	DisableColors bool
 }
 
-// DefaultLoggerConfig returns the default configuration for Logger.
-func DefaultLoggerConfig() LoggerConfig {
-	return LoggerConfig{
-		Format:      LogFormatDev,
-		Output:      os.Stdout,
-		TimeFormat:  time.RFC1123,
-		MaxBodySize: 64 << 10, // 64KB
-	}
-}
-
-// Logger returns a middleware that logs HTTP requests.
-// Uses the dev format by default.
-func Logger(format LogFormat) Middleware {
-	config := DefaultLoggerConfig()
-	config.Format = format
-	return LoggerWithConfig(config)
-}
-
-// LoggerJSON returns a middleware that logs HTTP requests in JSON format.
-func LoggerJSON() Middleware {
-	config := DefaultLoggerConfig()
-	config.Format = LogFormatJSON
-	return LoggerWithConfig(config)
+// Logger returns a middleware with dev format text output.
+func Logger() Middleware {
+	return LoggerWithConfig(LoggerConfig{
+		Output: TextOutput(os.Stdout, LogFormatDev),
+	})
 }
 
 // LoggerWithConfig returns a Logger middleware with the given configuration.
 func LoggerWithConfig(config LoggerConfig) Middleware {
 	if config.Output == nil {
-		config.Output = os.Stdout
-	}
-	if config.TimeFormat == "" {
-		config.TimeFormat = time.RFC1123
-	}
-	if config.Format == "" && config.CustomFormat == "" {
-		config.Format = LogFormatDev
+		config.Output = TextOutput(os.Stdout, LogFormatDev)
 	}
 	if config.MaxBodySize == 0 {
 		config.MaxBodySize = 64 << 10
-	}
-
-	// Get the format string for non-JSON formats
-	formatStr := config.CustomFormat
-	if formatStr == "" && config.Format != LogFormatJSON {
-		formatStr = getFormatString(config.Format)
 	}
 
 	// Precompile field extractors
@@ -158,136 +114,228 @@ func LoggerWithConfig(config LoggerConfig) Middleware {
 		fieldExtractors[name] = parseFieldSource(source)
 	}
 
-	// Buffer pool for JSON encoding
-	bufPool := &sync.Pool{
-		New: func() any {
-			return bytes.NewBuffer(make([]byte, 0, 512))
-		},
-	}
-
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Skip if configured
 			if config.Skip != nil && config.Skip(r) {
 				next.ServeHTTP(w, r)
 				return
 			}
 
-			// Capture request body if needed
 			var capturedBody []byte
 			if config.CaptureBody && r.Body != nil && r.ContentLength > 0 {
 				capturedBody = captureRequestBody(r, config.MaxBodySize)
 			}
 
-			// Record start time
 			start := time.Now()
-
-			// Wrap response writer
 			rw := newResponseWriter(w)
 
-			// Process request
 			next.ServeHTTP(rw, r)
 
-			// Calculate duration
-			duration := time.Since(start)
-
-			// Create log context
-			ctx := &logContext{
-				request:         r,
-				responseWriter:  rw,
-				duration:        duration,
-				config:          config,
-				capturedBody:    capturedBody,
-				fieldExtractors: fieldExtractors,
+			v := LogValues{
+				Method:        r.Method,
+				Path:          r.URL.Path,
+				URI:           r.URL.RequestURI(),
+				Host:          r.Host,
+				Protocol:      r.Proto,
+				RemoteIP:      getRemoteAddr(r),
+				UserAgent:     r.UserAgent(),
+				Referer:       r.Referer(),
+				ContentLength: r.ContentLength,
+				ContentType:   r.Header.Get("Content-Type"),
+				Status:        rw.Status(),
+				ResponseSize:  rw.Size(),
+				Latency:       time.Since(start),
+				RequestID:     r.Header.Get(RequestIDHeader),
+				StartTime:     start,
 			}
 
-			// Output log
-			if config.Format == LogFormatJSON {
-				writeJSONLog(config.Output, ctx, bufPool)
-			} else {
-				line := formatLogLine(formatStr, ctx)
-				fmt.Fprintln(config.Output, line)
+			// Extract headers
+			if len(config.LogHeaders) > 0 {
+				v.Headers = make(map[string]string, len(config.LogHeaders))
+				for _, h := range config.LogHeaders {
+					v.Headers[h] = r.Header.Get(h)
+				}
 			}
+
+			// Extract query params
+			if len(config.LogQueryParams) > 0 {
+				v.QueryParams = make(map[string]string, len(config.LogQueryParams))
+				query := r.URL.Query()
+				for _, p := range config.LogQueryParams {
+					v.QueryParams[p] = query.Get(p)
+				}
+			}
+
+			// Extract form values
+			if len(config.LogFormValues) > 0 {
+				v.FormValues = make(map[string]string, len(config.LogFormValues))
+				for _, f := range config.LogFormValues {
+					v.FormValues[f] = r.FormValue(f)
+				}
+			}
+
+			// Extract custom fields
+			if len(fieldExtractors) > 0 || len(config.CustomTokens) > 0 {
+				v.CustomFields = make(map[string]string)
+				for name, ext := range fieldExtractors {
+					if val := ext.extract(r); val != "" {
+						v.CustomFields[name] = val
+					}
+				}
+				for name, ext := range config.CustomTokens {
+					if val := ext(r, capturedBody); val != "" {
+						v.CustomFields[name] = val
+					}
+				}
+			}
+
+			config.Output(v)
 		})
 	}
 }
 
-// LoggerWithFormat returns a Logger middleware with a custom format string.
-func LoggerWithFormat(format string) Middleware {
-	config := DefaultLoggerConfig()
-	config.CustomFormat = format
-	return LoggerWithConfig(config)
+// --- Text Output Helpers (Morgan.js style) ---
+
+// TextOutputOptions configures text output formatting.
+type TextOutputOptions struct {
+	TimeFormat    string
+	DisableColors bool
+	JSONPretty    bool // for LogFormatJSON
 }
 
-// LoggerWithFields returns a Logger middleware with custom fields.
-func LoggerWithFields(fields map[string]string) Middleware {
-	config := DefaultLoggerConfig()
-	config.Fields = fields
-	return LoggerWithConfig(config)
+// TextOutput returns a LogOutputFunc that writes Morgan.js-style formatted logs.
+func TextOutput(w io.Writer, format LogFormat) LogOutputFunc {
+	return TextOutputWithOptions(w, format, TextOutputOptions{})
 }
 
-// logContext holds all the data needed for logging.
-type logContext struct {
-	request         *http.Request
-	responseWriter  *responseWriter
-	duration        time.Duration
-	config          LoggerConfig
-	capturedBody    []byte
-	fieldExtractors map[string]fieldExtractor
-}
-
-// fieldExtractor extracts a value from a request.
-type fieldExtractor struct {
-	source string // "header", "query", "cookie"
-	key    string // the header/query/cookie name
-}
-
-// parseFieldSource parses a field source string like "header:X-API-Version".
-func parseFieldSource(source string) fieldExtractor {
-	parts := strings.SplitN(source, ":", 2)
-	if len(parts) != 2 {
-		return fieldExtractor{source: "literal", key: source}
+// TextOutputCustom returns a LogOutputFunc with a custom format string.
+func TextOutputCustom(w io.Writer, format string, opts ...TextOutputOptions) LogOutputFunc {
+	var opt TextOutputOptions
+	if len(opts) > 0 {
+		opt = opts[0]
 	}
-	return fieldExtractor{source: parts[0], key: parts[1]}
+	if opt.TimeFormat == "" {
+		opt.TimeFormat = time.RFC1123
+	}
+	return textOutputFunc(w, format, opt)
 }
 
-// extract extracts the value from the request.
-func (f fieldExtractor) extract(r *http.Request) string {
-	switch f.source {
-	case "header":
-		return r.Header.Get(f.key)
-	case "query":
-		return r.URL.Query().Get(f.key)
-	case "cookie":
-		if c, err := r.Cookie(f.key); err == nil {
-			return c.Value
+// TextOutputWithOptions returns a LogOutputFunc with custom options.
+func TextOutputWithOptions(w io.Writer, format LogFormat, opts TextOutputOptions) LogOutputFunc {
+	if opts.TimeFormat == "" {
+		opts.TimeFormat = time.RFC1123
+	}
+	if format == LogFormatJSON {
+		return jsonOutputFunc(w, opts)
+	}
+	return textOutputFunc(w, getFormatString(format), opts)
+}
+
+func textOutputFunc(w io.Writer, formatStr string, opts TextOutputOptions) LogOutputFunc {
+	pattern := regexp.MustCompile(`:(\w+)\[([^\]]+)\]`)
+
+	return func(v LogValues) {
+		line := formatStr
+
+		status := strconv.Itoa(v.Status)
+		method := v.Method
+		if !opts.DisableColors {
+			status = colorizeStatus(v.Status)
+			method = colorizeMethod(v.Method)
 		}
-		return ""
-	case "literal":
-		return f.key
-	default:
-		return ""
+
+		replacements := map[string]string{
+			":method":         method,
+			":url":            v.URI,
+			":path":           v.Path,
+			":status":         status,
+			":response-time":  formatDuration(v.Latency),
+			":latency":        formatDuration(v.Latency),
+			":res-length":     formatSize(v.ResponseSize),
+			":remote-addr":    v.RemoteIP,
+			":remote-user":    "-",
+			":date":           v.StartTime.Format(opts.TimeFormat),
+			":referrer":       v.Referer,
+			":user-agent":     v.UserAgent,
+			":http-version":   formatHTTPVersion(v.Protocol),
+			":request-id":     v.RequestID,
+			":content-type":   v.ContentType,
+			":content-length": strconv.FormatInt(v.ContentLength, 10),
+		}
+
+		for token, val := range replacements {
+			line = strings.ReplaceAll(line, token, val)
+		}
+
+		// Dynamic tokens like :header[X-Name]
+		line = pattern.ReplaceAllStringFunc(line, func(match string) string {
+			m := pattern.FindStringSubmatch(match)
+			if len(m) != 3 {
+				return match
+			}
+			switch m[1] {
+			case "header":
+				return v.Headers[m[2]]
+			case "query":
+				return v.QueryParams[m[2]]
+			default:
+				return match
+			}
+		})
+
+		// Custom fields as tokens
+		for name, val := range v.CustomFields {
+			line = strings.ReplaceAll(line, ":"+name, val)
+		}
+
+		fmt.Fprintln(w, line)
 	}
 }
 
-// captureRequestBody reads and stores the request body, then replaces it.
-func captureRequestBody(r *http.Request, maxSize int64) []byte {
-	if r.Body == nil {
-		return nil
+func jsonOutputFunc(w io.Writer, opts TextOutputOptions) LogOutputFunc {
+	var mu sync.Mutex
+	bufPool := sync.Pool{New: func() any { return bytes.NewBuffer(make([]byte, 0, 512)) }}
+
+	return func(v LogValues) {
+		entry := map[string]any{
+			"timestamp":  v.StartTime.Format(time.RFC3339),
+			"method":     v.Method,
+			"path":       v.Path,
+			"status":     v.Status,
+			"latency":    formatDuration(v.Latency),
+			"latency_ms": float64(v.Latency.Microseconds()) / 1000.0,
+			"size":       v.ResponseSize,
+			"remote_ip":  v.RemoteIP,
+		}
+		if v.RequestID != "" {
+			entry["request_id"] = v.RequestID
+		}
+		if v.UserAgent != "" {
+			entry["user_agent"] = v.UserAgent
+		}
+		if len(v.CustomFields) > 0 {
+			entry["custom"] = v.CustomFields
+		}
+
+		buf := bufPool.Get().(*bytes.Buffer)
+		buf.Reset()
+		defer bufPool.Put(buf)
+
+		enc := json.NewEncoder(buf)
+		enc.SetEscapeHTML(false)
+		if opts.JSONPretty {
+			enc.SetIndent("", "  ")
+		}
+		enc.Encode(entry)
+
+		mu.Lock()
+		w.Write(buf.Bytes())
+		mu.Unlock()
 	}
-
-	limitReader := io.LimitReader(r.Body, maxSize)
-	body, err := io.ReadAll(limitReader)
-	if err != nil {
-		return nil
-	}
-
-	r.Body = io.NopCloser(bytes.NewReader(body))
-
-	return body
 }
 
-// getFormatString returns the format string for a predefined format.
+// --- Format Helpers ---
+
 func getFormatString(format LogFormat) string {
 	switch format {
 	case LogFormatCombined:
@@ -305,202 +353,57 @@ func getFormatString(format LogFormat) string {
 	}
 }
 
-// Token pattern for dynamic tokens like :header[X-API-Version] or :query[page]
-var dynamicTokenPattern = regexp.MustCompile(`:(\w+)\[([^\]]+)\]`)
-
-// formatLogLine replaces tokens in the format string with actual values.
-func formatLogLine(format string, ctx *logContext) string {
-	r := ctx.request
-	rw := ctx.responseWriter
-	config := ctx.config
-
-	line := format
-
-	status := rw.Status()
-	statusStr := strconv.Itoa(status)
-	if config.Format == LogFormatDev && !config.DisableColors {
-		statusStr = colorizeStatus(status)
+func formatDuration(d time.Duration) string {
+	if d < time.Millisecond {
+		return strconv.FormatFloat(float64(d.Microseconds()), 'f', 2, 64) + "µs"
 	}
-
-	method := r.Method
-	if config.Format == LogFormatDev && !config.DisableColors {
-		method = colorizeMethod(r.Method)
+	if d < time.Second {
+		return strconv.FormatFloat(float64(d.Microseconds())/1000, 'f', 2, 64) + "ms"
 	}
-
-	responseTime := formatDuration(ctx.duration)
-
-	replacements := []struct {
-		token string
-		value string
-	}{
-		{":method", method},
-		{":url", r.URL.RequestURI()},
-		{":path", r.URL.Path},
-		{":status", statusStr},
-		{":response-time", responseTime},
-		{":latency", responseTime},
-		{":res-length", formatSize(rw.Size())},
-		{":remote-addr", getRemoteAddr(r)},
-		{":remote-user", getRemoteUser(r)},
-		{":date", time.Now().Format(config.TimeFormat)},
-		{":referrer", r.Referer()},
-		{":user-agent", r.UserAgent()},
-		{":http-version", formatHTTPVersion(r.ProtoMajor, r.ProtoMinor)},
-		{":request-id", r.Header.Get(RequestIDHeader)},
-		{":content-type", r.Header.Get("Content-Type")},
-		{":content-length", strconv.FormatInt(r.ContentLength, 10)},
-	}
-
-	for _, rep := range replacements {
-		line = strings.ReplaceAll(line, rep.token, rep.value)
-	}
-
-	// Replace dynamic tokens like :header[X-API-Version] or :query[page]
-	line = dynamicTokenPattern.ReplaceAllStringFunc(line, func(match string) string {
-		matches := dynamicTokenPattern.FindStringSubmatch(match)
-		if len(matches) != 3 {
-			return match
-		}
-		tokenType := matches[1]
-		tokenKey := matches[2]
-
-		switch tokenType {
-		case "header":
-			return r.Header.Get(tokenKey)
-		case "query":
-			return r.URL.Query().Get(tokenKey)
-		case "cookie":
-			if c, err := r.Cookie(tokenKey); err == nil {
-				return c.Value
-			}
-			return ""
-		default:
-			return match
-		}
-	})
-
-	// Replace custom field tokens (from Fields config)
-	for name, extractor := range ctx.fieldExtractors {
-		token := ":" + name
-		line = strings.ReplaceAll(line, token, extractor.extract(r))
-	}
-
-	// Replace custom token extractors
-	for name, extractor := range config.CustomTokens {
-		token := ":" + name
-		if strings.Contains(line, token) {
-			value := extractor(r, ctx.capturedBody)
-			line = strings.ReplaceAll(line, token, value)
-		}
-	}
-
-	return line
+	return strconv.FormatFloat(d.Seconds(), 'f', 2, 64) + "s"
 }
 
-// LogEntry represents a JSON log entry.
-type LogEntry struct {
-	Timestamp    string            `json:"timestamp"`
-	Method       string            `json:"method"`
-	Path         string            `json:"path"`
-	URL          string            `json:"url,omitempty"`
-	Status       int               `json:"status"`
-	Latency      string            `json:"latency"`
-	LatencyMs    float64           `json:"latency_ms"`
-	Size         int               `json:"size"`
-	RemoteAddr   string            `json:"remote_addr"`
-	UserAgent    string            `json:"user_agent,omitempty"`
-	Referer      string            `json:"referer,omitempty"`
-	RequestID    string            `json:"request_id,omitempty"`
-	Error        string            `json:"error,omitempty"`
-	CustomFields map[string]string `json:"custom,omitempty"`
+func formatSize(size int) string {
+	if size < 0 {
+		return "-"
+	}
+	return strconv.Itoa(size)
 }
 
-// writeJSONLog writes a JSON-formatted log entry.
-func writeJSONLog(w io.Writer, ctx *logContext, bufPool *sync.Pool) {
-	r := ctx.request
-	rw := ctx.responseWriter
-
-	entry := LogEntry{
-		Timestamp:  time.Now().Format(time.RFC3339),
-		Method:     r.Method,
-		Path:       r.URL.Path,
-		URL:        r.URL.RequestURI(),
-		Status:     rw.Status(),
-		Latency:    formatDuration(ctx.duration),
-		LatencyMs:  float64(ctx.duration.Microseconds()) / 1000.0,
-		Size:       rw.Size(),
-		RemoteAddr: getRemoteAddr(r),
-		UserAgent:  r.UserAgent(),
-		Referer:    r.Referer(),
-		RequestID:  r.Header.Get(RequestIDHeader),
+func formatHTTPVersion(proto string) string {
+	if strings.HasPrefix(proto, "HTTP/") {
+		return proto[5:]
 	}
-
-	// Add custom fields from Fields config
-	if len(ctx.fieldExtractors) > 0 || len(ctx.config.CustomTokens) > 0 {
-		entry.CustomFields = make(map[string]string)
-
-		for name, extractor := range ctx.fieldExtractors {
-			if value := extractor.extract(r); value != "" {
-				entry.CustomFields[name] = value
-			}
-		}
-
-		for name, extractor := range ctx.config.CustomTokens {
-			if value := extractor(r, ctx.capturedBody); value != "" {
-				entry.CustomFields[name] = value
-			}
-		}
-	}
-
-	// Get buffer from pool
-	buf := bufPool.Get().(*bytes.Buffer)
-	buf.Reset()
-	defer bufPool.Put(buf)
-
-	// Encode JSON
-	encoder := json.NewEncoder(buf)
-	if ctx.config.JSONPretty {
-		encoder.SetIndent("", "  ")
-	}
-	encoder.SetEscapeHTML(false)
-
-	if err := encoder.Encode(entry); err != nil {
-		fmt.Fprintf(w, `{"error":"failed to encode log: %s"}`+"\n", err.Error())
-		return
-	}
-
-	w.Write(buf.Bytes())
+	return proto
 }
 
-// ANSI color codes
+// --- Color Helpers ---
+
 const (
-	reset   = "\033[0m"
-	red     = "\033[31m"
-	green   = "\033[32m"
-	yellow  = "\033[33m"
-	blue    = "\033[34m"
-	magenta = "\033[35m"
-	cyan    = "\033[36m"
-	white   = "\033[37m"
+	reset  = "\033[0m"
+	red    = "\033[31m"
+	green  = "\033[32m"
+	yellow = "\033[33m"
+	blue   = "\033[34m"
+	cyan   = "\033[36m"
 )
 
-// colorizeStatus returns a colorized status code.
 func colorizeStatus(status int) string {
+	s := strconv.Itoa(status)
 	switch {
 	case status >= 500:
-		return red + strconv.Itoa(status) + reset
+		return red + s + reset
 	case status >= 400:
-		return yellow + strconv.Itoa(status) + reset
+		return yellow + s + reset
 	case status >= 300:
-		return cyan + strconv.Itoa(status) + reset
+		return cyan + s + reset
 	case status >= 200:
-		return green + strconv.Itoa(status) + reset
+		return green + s + reset
 	default:
-		return strconv.Itoa(status)
+		return s
 	}
 }
 
-// colorizeMethod returns a colorized HTTP method.
 func colorizeMethod(method string) string {
 	switch method {
 	case http.MethodGet:
@@ -513,113 +416,86 @@ func colorizeMethod(method string) string {
 		return red + method + reset
 	case http.MethodPatch:
 		return green + method + reset
-	case http.MethodHead:
-		return magenta + method + reset
-	case http.MethodOptions:
-		return white + method + reset
 	default:
 		return method
 	}
 }
 
-// formatDuration formats a duration for logging.
-// Optimized to use strconv instead of fmt.Sprintf to reduce allocations.
-func formatDuration(d time.Duration) string {
-	if d < time.Millisecond {
-		us := d.Microseconds()
-		buf := make([]byte, 0, 16)
-		buf = strconv.AppendFloat(buf, float64(us), 'f', 2, 64)
-		buf = append(buf, 'µ', 's')
-		return string(buf)
-	}
-	if d < time.Second {
-		ms := float64(d.Microseconds()) / 1000
-		buf := make([]byte, 0, 16)
-		buf = strconv.AppendFloat(buf, ms, 'f', 2, 64)
-		buf = append(buf, 'm', 's')
-		return string(buf)
-	}
-	s := d.Seconds()
-	buf := make([]byte, 0, 16)
-	buf = strconv.AppendFloat(buf, s, 'f', 2, 64)
-	buf = append(buf, 's')
-	return string(buf)
+// --- Field Extraction ---
+
+type fieldExtractor struct {
+	source, key string
 }
 
-// formatSize formats a byte size for logging.
-func formatSize(size int) string {
-	if size < 0 {
-		return "-"
+func parseFieldSource(source string) fieldExtractor {
+	parts := strings.SplitN(source, ":", 2)
+	if len(parts) != 2 {
+		return fieldExtractor{source: "literal", key: source}
 	}
-	return strconv.Itoa(size)
+	return fieldExtractor{source: parts[0], key: parts[1]}
 }
 
-// formatHTTPVersion formats HTTP version without fmt.Sprintf to reduce allocations.
-func formatHTTPVersion(major, minor int) string {
-	buf := make([]byte, 0, 8)
-	buf = strconv.AppendInt(buf, int64(major), 10)
-	buf = append(buf, '.')
-	buf = strconv.AppendInt(buf, int64(minor), 10)
-	return string(buf)
+func (f fieldExtractor) extract(r *http.Request) string {
+	switch f.source {
+	case "header":
+		return r.Header.Get(f.key)
+	case "query":
+		return r.URL.Query().Get(f.key)
+	case "cookie":
+		if c, err := r.Cookie(f.key); err == nil {
+			return c.Value
+		}
+	case "literal":
+		return f.key
+	}
+	return ""
 }
 
-// getRemoteAddr gets the remote address from the request.
+// --- Body Capture ---
+
+func captureRequestBody(r *http.Request, maxSize int64) []byte {
+	if r.Body == nil {
+		return nil
+	}
+	body, err := io.ReadAll(io.LimitReader(r.Body, maxSize))
+	if err != nil {
+		return nil
+	}
+	r.Body = io.NopCloser(bytes.NewReader(body))
+	return body
+}
+
+// --- Request Helpers ---
+
 func getRemoteAddr(r *http.Request) string {
-	// Check X-Forwarded-For header
 	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		// Get first IP from comma-separated list
 		if idx := strings.Index(xff, ","); idx != -1 {
 			return strings.TrimSpace(xff[:idx])
 		}
 		return xff
 	}
-
-	// Check X-Real-IP header
 	if xri := r.Header.Get("X-Real-IP"); xri != "" {
 		return xri
 	}
-
-	// Fall back to RemoteAddr
-	addr := r.RemoteAddr
-	// Strip port if present
-	if idx := strings.LastIndex(addr, ":"); idx != -1 {
-		// Check if it's an IPv6 address
-		if strings.Count(addr, ":") > 1 {
-			// IPv6: [::1]:8080
-			if bracket := strings.LastIndex(addr, "]"); bracket != -1 && idx > bracket {
-				return addr[:idx]
-			}
-		} else {
-			return addr[:idx]
-		}
+	if idx := strings.LastIndex(r.RemoteAddr, ":"); idx != -1 {
+		return r.RemoteAddr[:idx]
 	}
-	return addr
+	return r.RemoteAddr
 }
 
-// getRemoteUser gets the remote user from Basic Auth (if present).
-func getRemoteUser(r *http.Request) string {
-	user, _, ok := r.BasicAuth()
-	if ok {
-		return user
-	}
-	return "-"
-}
+// --- Token Extractors ---
 
-// JSONBodyExtractor creates a token extractor that extracts a field from JSON body.
-// The path can be a simple field name like "user_id" or a nested path like "user.id".
+// JSONBodyExtractor creates a TokenExtractor for JSON body fields.
 func JSONBodyExtractor(path string) TokenExtractor {
 	parts := strings.Split(path, ".")
-
 	return func(r *http.Request, body []byte) string {
 		if len(body) == 0 {
 			return ""
 		}
-
 		var data map[string]any
-		if err := json.Unmarshal(body, &data); err != nil {
+		if json.Unmarshal(body, &data) != nil {
 			return ""
 		}
-
 		var current any = data
 		for _, part := range parts {
 			if m, ok := current.(map[string]any); ok {
@@ -628,12 +504,10 @@ func JSONBodyExtractor(path string) TokenExtractor {
 				return ""
 			}
 		}
-
 		switch v := current.(type) {
 		case string:
 			return v
 		case float64:
-			// Check if it's an integer
 			if v == float64(int64(v)) {
 				return strconv.FormatInt(int64(v), 10)
 			}
@@ -643,7 +517,6 @@ func JSONBodyExtractor(path string) TokenExtractor {
 		case nil:
 			return ""
 		default:
-			// For complex types, return JSON representation
 			if b, err := json.Marshal(v); err == nil {
 				return string(b)
 			}
@@ -652,18 +525,14 @@ func JSONBodyExtractor(path string) TokenExtractor {
 	}
 }
 
-// FormValueExtractor creates a token extractor that extracts a form field.
+// FormValueExtractor creates a TokenExtractor for form fields.
 func FormValueExtractor(field string) TokenExtractor {
 	return func(r *http.Request, body []byte) string {
-		// Parse form if not already parsed
-		if r.Form == nil {
-			r.ParseForm()
-		}
 		return r.FormValue(field)
 	}
 }
 
-// ContextValueExtractor creates a token extractor that extracts a value from request context.
+// ContextValueExtractor creates a TokenExtractor for context values.
 func ContextValueExtractor(key any) TokenExtractor {
 	return func(r *http.Request, body []byte) string {
 		if v := r.Context().Value(key); v != nil {

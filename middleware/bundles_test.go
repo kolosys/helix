@@ -11,8 +11,8 @@ import (
 func TestAPI(t *testing.T) {
 	bundle := API()
 
-	if len(bundle) != 4 {
-		t.Errorf("expected 4 middleware in API bundle, got %d", len(bundle))
+	if len(bundle) != 3 {
+		t.Errorf("expected 3 middleware in API bundle, got %d", len(bundle))
 	}
 
 	// Test that the bundle can be applied
@@ -46,8 +46,8 @@ func TestAPIWithCORS(t *testing.T) {
 	}
 	bundle := APIWithCORS(config)
 
-	if len(bundle) != 4 {
-		t.Errorf("expected 4 middleware in APIWithCORS bundle, got %d", len(bundle))
+	if len(bundle) != 3 {
+		t.Errorf("expected 3 middleware in APIWithCORS bundle, got %d", len(bundle))
 	}
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -78,8 +78,8 @@ func TestAPIWithCORS(t *testing.T) {
 func TestWeb(t *testing.T) {
 	bundle := Web()
 
-	if len(bundle) != 4 {
-		t.Errorf("expected 4 middleware in Web bundle, got %d", len(bundle))
+	if len(bundle) != 3 {
+		t.Errorf("expected 3 middleware in Web bundle, got %d", len(bundle))
 	}
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -131,8 +131,8 @@ func TestMinimal(t *testing.T) {
 func TestProduction(t *testing.T) {
 	bundle := Production()
 
-	if len(bundle) != 3 {
-		t.Errorf("expected 3 middleware in Production bundle, got %d", len(bundle))
+	if len(bundle) != 2 {
+		t.Errorf("expected 2 middleware in Production bundle, got %d", len(bundle))
 	}
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -156,8 +156,8 @@ func TestProduction(t *testing.T) {
 func TestDevelopment(t *testing.T) {
 	bundle := Development()
 
-	if len(bundle) != 3 {
-		t.Errorf("expected 3 middleware in Development bundle, got %d", len(bundle))
+	if len(bundle) != 2 {
+		t.Errorf("expected 2 middleware in Development bundle, got %d", len(bundle))
 	}
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -181,8 +181,8 @@ func TestDevelopment(t *testing.T) {
 func TestSecure(t *testing.T) {
 	bundle := Secure(100.0, 10)
 
-	if len(bundle) != 4 {
-		t.Errorf("expected 4 middleware in Secure bundle, got %d", len(bundle))
+	if len(bundle) != 3 {
+		t.Errorf("expected 3 middleware in Secure bundle, got %d", len(bundle))
 	}
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

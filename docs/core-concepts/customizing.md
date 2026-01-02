@@ -454,23 +454,16 @@ s.Use(helix.ProvideMiddleware(func(r *http.Request) *Transaction {
 
 ### With Logging
 
-Integrate with Helix's logging package:
+Use standard library logging or any logging library:
 
 ```go
-import "github.com/kolosys/helix/logs"
+import "log"
 
 s := helix.New(nil)
 
-// Configure logger
-log := logs.New(&logs.Options{
-    Level:     logs.InfoLevel,
-    Formatter: &logs.JSONFormatter{},
-    AddCaller: true,
-})
-
 // Use in lifecycle hooks
 s.OnStart(func(s *helix.Server) {
-    log.Info("server starting", logs.String("addr", s.Addr()))
+    log.Printf("server starting on %s", s.Addr())
 })
 ```
 

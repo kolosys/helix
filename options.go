@@ -3,9 +3,12 @@ package helix
 import (
 	"crypto/tls"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/kolosys/helix/middleware"
 )
 
 // Options configures a Server.
@@ -75,6 +78,12 @@ type Options struct {
 	// MaxPortAttempts is the maximum number of ports to try when AutoPort is enabled.
 	// Default is 10.
 	MaxPortAttempts int
+
+	// LogOutput is a callback that receives request log data for output.
+	// Use middleware.TextOutput() for Morgan.js-style formatted logs.
+	// Use middleware.TextOutputWithOptions() for custom formatting.
+	// If not set, defaults to dev format text output.
+	LogOutput middleware.LogOutputFunc
 }
 
 // applyDefaults applies default values to nil or zero-valued options.
@@ -96,6 +105,9 @@ func (o *Options) applyDefaults() {
 	}
 	if o.MaxPortAttempts == 0 {
 		o.MaxPortAttempts = 10
+	}
+	if o.LogOutput == nil {
+		o.LogOutput = middleware.TextOutput(os.Stdout, middleware.LogFormatDev)
 	}
 }
 
@@ -137,7 +149,7 @@ func findAvailableAddr(addr string, maxAttempts int) (string, error) {
 		return "", err
 	}
 
-	for i := 0; i < maxAttempts; i++ {
+	for i := range maxAttempts {
 		if isPortAvailable(host, port+i) {
 			return net.JoinHostPort(host, strconv.Itoa(port+i)), nil
 		}

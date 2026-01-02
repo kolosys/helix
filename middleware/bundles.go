@@ -1,11 +1,11 @@
 package middleware
 
 // API returns a middleware bundle suitable for JSON API servers.
-// Includes: RequestID, Logger (JSON format), Recover, and CORS.
+// Includes: RequestID, Recover, and CORS.
+// Add logging via helix.LoggerMiddleware with your preferred RequestLogger.
 func API() []Middleware {
 	return []Middleware{
 		RequestID(),
-		Logger(LogFormatJSON),
 		Recover(),
 		CORS(),
 	}
@@ -13,22 +13,22 @@ func API() []Middleware {
 
 // APIWithCORS returns a middleware bundle suitable for JSON API servers
 // with a custom CORS configuration.
-// Includes: RequestID, Logger (JSON format), Recover, and CORS with config.
+// Includes: RequestID, Recover, and CORS with config.
+// Add logging via helix.LoggerMiddleware with your preferred RequestLogger.
 func APIWithCORS(cors CORSConfig) []Middleware {
 	return []Middleware{
 		RequestID(),
-		Logger(LogFormatJSON),
 		Recover(),
 		CORSWithConfig(cors),
 	}
 }
 
 // Web returns a middleware bundle suitable for web applications.
-// Includes: RequestID, Logger (dev format), Recover, and Compress.
+// Includes: RequestID, Recover, and Compress.
+// Add logging via helix.LoggerMiddleware with your preferred RequestLogger.
 func Web() []Middleware {
 	return []Middleware{
 		RequestID(),
-		Logger(LogFormatDev),
 		Recover(),
 		Compress(),
 	}
@@ -43,28 +43,29 @@ func Minimal() []Middleware {
 }
 
 // Production returns a middleware bundle suitable for production environments.
-// Includes: RequestID, Logger (combined format), Recover.
+// Includes: RequestID, Recover.
+// Add logging via helix.LoggerMiddleware with your preferred RequestLogger.
 func Production() []Middleware {
 	return []Middleware{
 		RequestID(),
-		Logger(LogFormatCombined),
 		Recover(),
 	}
 }
 
 // Development returns a middleware bundle suitable for development.
-// Includes: RequestID, Logger (dev format), Recover.
-// This is the same as what helix.Default() uses.
+// Includes: RequestID, Recover.
+// Add logging via helix.LoggerMiddleware with your preferred RequestLogger.
+// This is the same as what helix.Default() uses (plus logging).
 func Development() []Middleware {
 	return []Middleware{
 		RequestID(),
-		Logger(LogFormatDev),
 		Recover(),
 	}
 }
 
 // Secure returns a middleware bundle with security-focused middleware.
-// Includes: RequestID, Logger (JSON format), Recover, RateLimit.
+// Includes: RequestID, Recover, RateLimit.
+// Add logging via helix.LoggerMiddleware with your preferred RequestLogger.
 // Note: You should also add CORS and authentication middleware as needed.
 // Parameters:
 //   - rate: requests per second allowed
@@ -72,7 +73,6 @@ func Development() []Middleware {
 func Secure(rate float64, burst int) []Middleware {
 	return []Middleware{
 		RequestID(),
-		Logger(LogFormatJSON),
 		Recover(),
 		RateLimit(rate, burst),
 	}

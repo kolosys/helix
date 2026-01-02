@@ -4,17 +4,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/kolosys/helix"
-	"github.com/kolosys/helix/logs"
 )
 
 func main() {
-	logs.SetDefaultLevel(logs.InfoLevel)
-	logs.SetDefaultFormatter(&logs.JSONFormatter{})
-
 	// Create a new server with default settings
 	s := helix.Default(&helix.Options{
 		Addr: ":8080",
@@ -51,11 +48,11 @@ func main() {
 
 	// Lifecycle hooks
 	s.OnStart(func(s *helix.Server) {
-		logs.Infof("Server starting on %s", s.Addr())
+		log.Printf("Server starting on %s", s.Addr())
 	})
 
 	s.OnStop(func(ctx context.Context, s *helix.Server) {
-		logs.Info("Server shutting down...")
+		log.Println("Server shutting down...")
 	})
 
 	// Run server with graceful shutdown
@@ -63,6 +60,6 @@ func main() {
 	defer cancel()
 
 	if err := s.Run(ctx); err != nil {
-		logs.Fatal(err.Error())
+		log.Fatal(err)
 	}
 }

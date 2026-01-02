@@ -44,35 +44,6 @@ The main `helix` package provides the HTTP web framework:
 import "github.com/kolosys/helix"
 ```
 
-#### Logs Package
-
-The `logs` package provides structured logging:
-
-```go
-// Package logs provides a high-performance, context-aware structured logging library.
-//
-// Features:
-//   - Zero-allocation hot paths using sync.Pool
-//   - Context-aware logging with context.Context
-//   - Type-safe field builders
-//   - Multiple output formats (text, JSON, pretty)
-//   - Sampling for high-volume logs
-//   - Async logging option
-//   - Hook system for extensibility
-//   - Built-in caller information
-//   - Chained/fluent API
-//
-// Basic usage:
-//
-//	log := logs.New(nil)
-//	log.Info("server started", logs.Int("port", 8080))
-//
-// With context:
-//
-//	log.InfoContext(ctx, "request processed", logs.Duration("latency", time.Since(start)))
-import "github.com/kolosys/helix/logs"
-```
-
 #### Middleware Package
 
 The `middleware` package provides HTTP middleware:

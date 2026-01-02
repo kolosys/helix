@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/kolosys/helix"
-	"github.com/kolosys/helix/logs"
 )
 
 // User represents a user in the system.
@@ -95,7 +94,7 @@ func main() {
 	// Custom error handler that logs errors and provides custom formatting
 	customErrorHandler := func(w http.ResponseWriter, r *http.Request, err error) {
 		// Log the error for debugging
-		logs.Errorf("Error handling request %s %s: %v", r.Method, r.URL.Path, err)
+		log.Printf("Error handling request %s %s: %v", r.Method, r.URL.Path, err)
 
 		// You can customize error handling here, e.g., different formats for different error types
 		// For this example, we'll use the default Problem format but add custom logging
@@ -196,11 +195,11 @@ func main() {
 	}))
 
 	// Print registered routes
-	logs.Info("Registered routes:")
+	log.Println("Registered routes:")
 	s.PrintRoutes(log.Writer())
 
-	logs.Println("Server starting on :8080")
+	log.Println("Server starting on :8080")
 	if err := s.Start(); err != nil {
-		logs.Fatal(err.Error())
+		log.Fatal(err)
 	}
 }
