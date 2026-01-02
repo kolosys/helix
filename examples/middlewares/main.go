@@ -16,9 +16,9 @@ func main() {
 	})
 
 	// Add global middleware in order - no explicit casting needed!
-	s.Use(middleware.RequestID())   // Generate unique request IDs
-	s.Use(middleware.Logger())      // Log requests (dev format by default)
-	s.Use(middleware.Recover())     // Recover from panics
+	s.Use(middleware.RequestID()) // Generate unique request IDs
+	s.Use(middleware.Logger())    // Log requests (dev format by default)
+	s.Use(middleware.Recover())   // Recover from panics
 
 	// CORS middleware for API endpoints
 	s.Use(middleware.CORSWithConfig(middleware.CORSConfig{
