@@ -271,3 +271,314 @@ func BenchmarkHandleNoRequest(b *testing.B) {
 		s.ServeHTTP(rec, req)
 	}
 }
+
+func TestHandleVersions(t *testing.T) {
+	type Request struct{}
+	type Response struct {
+		Version string `json:"version"`
+		Data    string `json:"data"`
+	}
+
+	tests := []struct {
+		name           string
+		headerName     string
+		defaultVersion string
+		versions       map[string]Handler[Request, Response]
+		headerValue    string
+		expectedStatus int
+		expectedBody   string
+	}{
+		{
+			name:           "version from header",
+			headerName:     "API-Version",
+			defaultVersion: "v1",
+			versions: map[string]Handler[Request, Response]{
+				"v1": func(ctx context.Context, req Request) (Response, error) {
+					return Response{Version: "v1", Data: "v1 data"}, nil
+				},
+				"v2": func(ctx context.Context, req Request) (Response, error) {
+					return Response{Version: "v2", Data: "v2 data"}, nil
+				},
+			},
+			headerValue:    "v2",
+			expectedStatus: http.StatusOK,
+			expectedBody:   `{"version":"v2","data":"v2 data"}`,
+		},
+		{
+			name:           "default version when no header",
+			headerName:     "API-Version",
+			defaultVersion: "v1",
+			versions: map[string]Handler[Request, Response]{
+				"v1": func(ctx context.Context, req Request) (Response, error) {
+					return Response{Version: "v1", Data: "v1 data"}, nil
+				},
+				"v2": func(ctx context.Context, req Request) (Response, error) {
+					return Response{Version: "v2", Data: "v2 data"}, nil
+				},
+			},
+			headerValue:    "",
+			expectedStatus: http.StatusOK,
+			expectedBody:   `{"version":"v1","data":"v1 data"}`,
+		},
+		{
+			name:           "version not found returns 404",
+			headerName:     "API-Version",
+			defaultVersion: "v1",
+			versions: map[string]Handler[Request, Response]{
+				"v1": func(ctx context.Context, req Request) (Response, error) {
+					return Response{Version: "v1", Data: "v1 data"}, nil
+				},
+			},
+			headerValue:    "v3",
+			expectedStatus: http.StatusNotFound,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			s := New(nil)
+			s.GET("/api", HandleVersions(tc.headerName, tc.defaultVersion, tc.versions))
+
+			req := httptest.NewRequest(http.MethodGet, "/api", nil)
+			if tc.headerValue != "" {
+				req.Header.Set(tc.headerName, tc.headerValue)
+			}
+			rec := httptest.NewRecorder()
+			s.ServeHTTP(rec, req)
+
+			if rec.Code != tc.expectedStatus {
+				t.Errorf("expected status %d, got %d", tc.expectedStatus, rec.Code)
+			}
+
+			if tc.expectedBody != "" {
+				body := strings.TrimSpace(rec.Body.String())
+				if body != tc.expectedBody {
+					t.Errorf("expected body %q, got %q", tc.expectedBody, body)
+				}
+			}
+		})
+	}
+}
+
+func TestHandleVersionsWithError(t *testing.T) {
+	type Request struct{}
+	type Response struct {
+		Data string `json:"data"`
+	}
+
+	s := New(nil)
+	s.GET("/api", HandleVersions("API-Version", "v1", map[string]Handler[Request, Response]{
+		"v1": func(ctx context.Context, req Request) (Response, error) {
+			return Response{}, ErrBadRequest.WithDetailf("invalid request")
+		},
+		"v2": func(ctx context.Context, req Request) (Response, error) {
+			return Response{}, ErrNotFound.WithDetailf("not found")
+		},
+	}))
+
+	tests := []struct {
+		name           string
+		headerValue    string
+		expectedStatus int
+	}{
+		{
+			name:           "v1 returns bad request",
+			headerValue:    "v1",
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "v2 returns not found",
+			headerValue:    "v2",
+			expectedStatus: http.StatusNotFound,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/api", nil)
+			req.Header.Set("API-Version", tc.headerValue)
+			rec := httptest.NewRecorder()
+			s.ServeHTTP(rec, req)
+
+			if rec.Code != tc.expectedStatus {
+				t.Errorf("expected status %d, got %d", tc.expectedStatus, rec.Code)
+			}
+		})
+	}
+}
+
+func TestHandleVersionsWithBinding(t *testing.T) {
+	type Request struct {
+		ID int `path:"id"`
+	}
+	type Response struct {
+		ID      int    `json:"id"`
+		Version string `json:"version"`
+	}
+
+	s := New(nil)
+	s.GET("/items/{id}", HandleVersions("API-Version", "v1", map[string]Handler[Request, Response]{
+		"v1": func(ctx context.Context, req Request) (Response, error) {
+			return Response{ID: req.ID, Version: "v1"}, nil
+		},
+		"v2": func(ctx context.Context, req Request) (Response, error) {
+			return Response{ID: req.ID, Version: "v2"}, nil
+		},
+	}))
+
+	tests := []struct {
+		name           string
+		path           string
+		headerValue    string
+		expectedStatus int
+		expectedID     int
+		expectedVer    string
+	}{
+		{
+			name:           "v1 with path param",
+			path:           "/items/123",
+			headerValue:    "v1",
+			expectedStatus: http.StatusOK,
+			expectedID:     123,
+			expectedVer:    "v1",
+		},
+		{
+			name:           "v2 with path param",
+			path:           "/items/456",
+			headerValue:    "v2",
+			expectedStatus: http.StatusOK,
+			expectedID:     456,
+			expectedVer:    "v2",
+		},
+		{
+			name:           "default version with path param",
+			path:           "/items/789",
+			headerValue:    "",
+			expectedStatus: http.StatusOK,
+			expectedID:     789,
+			expectedVer:    "v1",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
+			if tc.headerValue != "" {
+				req.Header.Set("API-Version", tc.headerValue)
+			}
+			rec := httptest.NewRecorder()
+			s.ServeHTTP(rec, req)
+
+			if rec.Code != tc.expectedStatus {
+				t.Errorf("expected status %d, got %d", tc.expectedStatus, rec.Code)
+			}
+
+			if rec.Code == http.StatusOK {
+				body := rec.Body.String()
+				if !strings.Contains(body, `"version":"`+tc.expectedVer+`"`) {
+					t.Errorf("expected version %q in response, got %s", tc.expectedVer, body)
+				}
+			}
+		})
+	}
+}
+
+type versionValidatableRequest struct {
+	Email string `json:"email"`
+}
+
+func (v *versionValidatableRequest) Validate() error {
+	verrs := NewValidationErrors()
+	if v.Email == "" {
+		verrs.Add("email", "email is required")
+	}
+	return verrs.Err()
+}
+
+func TestHandleVersionsWithValidatable(t *testing.T) {
+	type Response struct {
+		Email   string `json:"email"`
+		Version string `json:"version"`
+	}
+
+	s := New(nil)
+	s.POST("/users", HandleVersions("API-Version", "v1", map[string]Handler[versionValidatableRequest, Response]{
+		"v1": func(ctx context.Context, req versionValidatableRequest) (Response, error) {
+			return Response{Email: req.Email, Version: "v1"}, nil
+		},
+		"v2": func(ctx context.Context, req versionValidatableRequest) (Response, error) {
+			return Response{Email: req.Email, Version: "v2"}, nil
+		},
+	}))
+
+	tests := []struct {
+		name           string
+		body           string
+		headerValue    string
+		expectedStatus int
+	}{
+		{
+			name:           "v1 with valid request",
+			body:           `{"email":"test@example.com"}`,
+			headerValue:    "v1",
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "v2 with valid request",
+			body:           `{"email":"test@example.com"}`,
+			headerValue:    "v2",
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name:           "v1 with invalid request",
+			body:           `{"email":""}`,
+			headerValue:    "v1",
+			expectedStatus: http.StatusBadRequest,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(tc.body))
+			req.Header.Set("Content-Type", "application/json")
+			if tc.headerValue != "" {
+				req.Header.Set("API-Version", tc.headerValue)
+			}
+			rec := httptest.NewRecorder()
+			s.ServeHTTP(rec, req)
+
+			if rec.Code != tc.expectedStatus {
+				t.Errorf("expected status %d, got %d", tc.expectedStatus, rec.Code)
+			}
+		})
+	}
+}
+
+func BenchmarkHandleVersions(b *testing.B) {
+	type Request struct{}
+	type Response struct {
+		Version string `json:"version"`
+		Data    string `json:"data"`
+	}
+
+	s := New(nil)
+	s.GET("/api", HandleVersions("API-Version", "v1", map[string]Handler[Request, Response]{
+		"v1": func(ctx context.Context, req Request) (Response, error) {
+			return Response{Version: "v1", Data: "data"}, nil
+		},
+		"v2": func(ctx context.Context, req Request) (Response, error) {
+			return Response{Version: "v2", Data: "data"}, nil
+		},
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/api", nil)
+	req.Header.Set("API-Version", "v1")
+
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		rec := httptest.NewRecorder()
+		s.ServeHTTP(rec, req)
+	}
+}

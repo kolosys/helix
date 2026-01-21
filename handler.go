@@ -242,3 +242,48 @@ func isBindingError(err error) bool {
 	errStr := err.Error()
 	return len(errStr) > 6 && errStr[:6] == "helix:"
 }
+
+// HandleVersions wraps a generic Handler into an http.HandlerFunc that returns a versioned response.
+// The version is determined by the header value specified by headerName.
+// If no version header is present, defaultVersion is used.
+func HandleVersions[Req, Res any](headerName, defaultVersion string, versions map[string]Handler[Req, Res]) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		version := r.Header.Get(headerName)
+		if version == "" {
+			version = defaultVersion
+		}
+		h, ok := versions[version]
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
+
+		// Bind request
+		req, err := Bind[Req](r)
+		if err != nil {
+			handleError(w, r, err)
+			return
+		}
+
+		// Check if request is validatable
+		if v, ok := any(&req).(Validatable); ok {
+			if err := v.Validate(); err != nil {
+				handleError(w, r, err)
+				return
+			}
+		}
+
+		// Call handler
+		res, err := h(r.Context(), req)
+		if err != nil {
+			handleError(w, r, err)
+			return
+		}
+
+		// Encode response
+		if err := JSON(w, http.StatusOK, res); err != nil {
+			handleError(w, r, err)
+			return
+		}
+	}
+}
