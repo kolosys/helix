@@ -134,6 +134,74 @@ var ErrGatewayTimeout = NewProblem(http.StatusGatewayTimeout, "gateway_timeout",
 
 ## Types
 
+### BindingError
+BindingError represents a detailed binding error with source information and hints.
+
+#### Example Usage
+
+```go
+// Create a new BindingError
+bindingerror := BindingError{
+    Field: "example",
+    Source: "example",
+    Reason: "example",
+    Hint: "example",
+    Wrapped: error{},
+}
+```
+
+#### Type Definition
+
+```go
+type BindingError struct {
+    Field string
+    Source string
+    Reason string
+    Hint string
+    Wrapped error
+}
+```
+
+### Fields
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| Field | `string` | The field name that failed |
+| Source | `string` | The binding source (path, query, header, json, form) |
+| Reason | `string` | Why the binding failed |
+| Hint | `string` | A helpful hint for fixing the error |
+| Wrapped | `error` | The underlying error, if any |
+
+## Methods
+
+### Error
+
+Error implements the error interface.
+
+```go
+func (*BindingError) Error() string
+```
+
+**Parameters:**
+  None
+
+**Returns:**
+- string
+
+### Unwrap
+
+Unwrap returns the underlying error.
+
+```go
+func (*BindingError) Unwrap() error
+```
+
+**Parameters:**
+  None
+
+**Returns:**
+- error
+
 ### Ctx
 Ctx provides a unified context for HTTP handlers with fluent accessors for request data and response methods.
 
@@ -230,10 +298,11 @@ func (*Ctx) Attachment(filename string) *Ctx
 BadRequest writes a 400 Bad Request error response.
 
 ```go
-func (*Ctx) BadRequest(message string) error
+func BadRequest(w http.ResponseWriter, message string) error
 ```
 
 **Parameters:**
+- `w` (http.ResponseWriter)
 - `message` (string)
 
 **Returns:**
@@ -244,13 +313,14 @@ func (*Ctx) BadRequest(message string) error
 Bind binds the request body to the given struct using JSON decoding.
 
 ```go
-func (*Ctx) Bind(v any) error
+func Bind(r *http.Request) (T, error)
 ```
 
 **Parameters:**
-- `v` (any)
+- `r` (*http.Request)
 
 **Returns:**
+- T
 - error
 
 ### BindJSON
@@ -266,6 +336,20 @@ func BindJSON(r *http.Request) (T, error)
 
 **Returns:**
 - T
+- error
+
+### BindJSONOrError
+
+BindJSONOrError binds JSON body and returns a Problem on failure. Returns nil if binding succeeds, or a BadRequest Problem if it fails. This is a convenience method for the common pattern of returning an error response on bind failure.
+
+```go
+func (*Ctx) BindJSONOrError(v any) error
+```
+
+**Parameters:**
+- `v` (any)
+
+**Returns:**
 - error
 
 ### BindPagination
@@ -361,10 +445,12 @@ func (*Ctx) DeletedMessage(message string) error
 File serves a file.
 
 ```go
-func (*Ctx) File(path string)
+func File(w http.ResponseWriter, r *http.Request, path string)
 ```
 
 **Parameters:**
+- `w` (http.ResponseWriter)
+- `r` (*http.Request)
 - `path` (string)
 
 **Returns:**
@@ -475,11 +561,10 @@ func (*Ctx) Inline(filename string) *Ctx
 InternalServerError writes a 500 Internal Server Error response.
 
 ```go
-func InternalServerError(w http.ResponseWriter, message string) error
+func (*Ctx) InternalServerError(message string) error
 ```
 
 **Parameters:**
-- `w` (http.ResponseWriter)
 - `message` (string)
 
 **Returns:**
@@ -519,11 +604,11 @@ func MustGet() T
 NoContent writes a 204 No Content response.
 
 ```go
-func NoContent(w http.ResponseWriter) error
+func (*Ctx) NoContent() error
 ```
 
 **Parameters:**
-- `w` (http.ResponseWriter)
+  None
 
 **Returns:**
 - error
@@ -606,11 +691,10 @@ func (*Ctx) Param(name string) string
 ParamInt returns the value of a path parameter as an int.
 
 ```go
-func ParamInt(r *http.Request, name string) (int, error)
+func (*Ctx) ParamInt(name string) (int, error)
 ```
 
 **Parameters:**
-- `r` (*http.Request)
 - `name` (string)
 
 **Returns:**
@@ -622,10 +706,11 @@ func ParamInt(r *http.Request, name string) (int, error)
 ParamInt64 returns the value of a path parameter as an int64.
 
 ```go
-func (*Ctx) ParamInt64(name string) (int64, error)
+func ParamInt64(r *http.Request, name string) (int64, error)
 ```
 
 **Parameters:**
+- `r` (*http.Request)
 - `name` (string)
 
 **Returns:**
@@ -637,10 +722,11 @@ func (*Ctx) ParamInt64(name string) (int64, error)
 ParamUUID returns the value of a path parameter validated as a UUID.
 
 ```go
-func (*Ctx) ParamUUID(name string) (string, error)
+func ParamUUID(r *http.Request, name string) (string, error)
 ```
 
 **Parameters:**
+- `r` (*http.Request)
 - `name` (string)
 
 **Returns:**
@@ -726,10 +812,11 @@ func (*Ctx) QueryFloat64(name string, defaultVal float64) float64
 QueryInt returns the first value of a query parameter as an int.
 
 ```go
-func (*Ctx) QueryInt(name string, defaultVal int) int
+func QueryInt(r *http.Request, name string, defaultVal int) int
 ```
 
 **Parameters:**
+- `r` (*http.Request)
 - `name` (string)
 - `defaultVal` (int)
 
@@ -741,10 +828,11 @@ func (*Ctx) QueryInt(name string, defaultVal int) int
 QueryInt64 returns the first value of a query parameter as an int64.
 
 ```go
-func (*Ctx) QueryInt64(name string, defaultVal int64) int64
+func QueryInt64(r *http.Request, name string, defaultVal int64) int64
 ```
 
 **Parameters:**
+- `r` (*http.Request)
 - `name` (string)
 - `defaultVal` (int64)
 
@@ -756,10 +844,11 @@ func (*Ctx) QueryInt64(name string, defaultVal int64) int64
 QuerySlice returns all values of a query parameter as a string slice.
 
 ```go
-func (*Ctx) QuerySlice(name string) []string
+func QuerySlice(r *http.Request, name string) []string
 ```
 
 **Parameters:**
+- `r` (*http.Request)
 - `name` (string)
 
 **Returns:**
@@ -872,10 +961,11 @@ func (*Ctx) Status(code int) *Ctx
 Text writes a plain text response with the given status code.
 
 ```go
-func (*Ctx) Text(status int, text string) error
+func Text(w http.ResponseWriter, status int, text string) error
 ```
 
 **Parameters:**
+- `w` (http.ResponseWriter)
 - `status` (int)
 - `text` (string)
 
@@ -1017,7 +1107,7 @@ func (*Group) Any(pattern string, handler http.HandlerFunc)
 DELETE registers a handler for DELETE requests.
 
 ```go
-func (*Server) DELETE(pattern string, handler http.HandlerFunc)
+func (*Group) DELETE(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -1077,14 +1167,16 @@ func (*Group) HEAD(pattern string, handler http.HandlerFunc)
 Handle registers a handler for the given method and pattern.
 
 ```go
-func Handle(h *ast.IndexListExpr) http.HandlerFunc
+func (*Group) Handle(method, pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
-- `h` (*ast.IndexListExpr)
+- `method` (string)
+- `pattern` (string)
+- `handler` (http.HandlerFunc)
 
 **Returns:**
-- http.HandlerFunc
+  None
 
 ### Mount
 
@@ -1123,7 +1215,7 @@ func (*Group) MountFunc(prefix string, fn func(r RouteRegistrar), mw ...any)
 OPTIONS registers a handler for OPTIONS requests.
 
 ```go
-func (*Server) OPTIONS(pattern string, handler http.HandlerFunc)
+func (*Group) OPTIONS(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -1138,7 +1230,7 @@ func (*Server) OPTIONS(pattern string, handler http.HandlerFunc)
 PATCH registers a handler for PATCH requests.
 
 ```go
-func (*Server) PATCH(pattern string, handler http.HandlerFunc)
+func (*Group) PATCH(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -1213,7 +1305,7 @@ func (*Group) Static(pattern, root string)
 Use adds middleware to the group. Middleware is applied to all routes registered on this group. Accepts Middleware (helix.Middleware is an alias for middleware.Middleware) or func(http.Handler) http.Handler.
 
 ```go
-func (*Group) Use(mw ...any)
+func (*Server) Use(mw ...any)
 ```
 
 **Parameters:**
@@ -2266,16 +2358,14 @@ func UnprocessableEntityf(format string, args ...any) Problem
 Error implements the error interface.
 
 ```go
-func Error(w http.ResponseWriter, status int, message string) error
+func (*BindingError) Error() string
 ```
 
 **Parameters:**
-- `w` (http.ResponseWriter)
-- `status` (int)
-- `message` (string)
+  None
 
 **Returns:**
-- error
+- string
 
 ### WithDetail
 
@@ -2700,7 +2790,7 @@ type Router struct {
 Handle registers a new route with the given method and pattern.
 
 ```go
-func (*Server) Handle(method, pattern string, handler http.HandlerFunc)
+func (*Group) Handle(method, pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -2716,7 +2806,7 @@ func (*Server) Handle(method, pattern string, handler http.HandlerFunc)
 Routes returns all registered routes.
 
 ```go
-func (*Server) Routes() []RouteInfo
+func (*Router) Routes() []RouteInfo
 ```
 
 **Parameters:**
@@ -2730,12 +2820,12 @@ func (*Server) Routes() []RouteInfo
 ServeHTTP implements http.Handler.
 
 ```go
-func (*Server) ServeHTTP(w http.ResponseWriter, r *http.Request)
+func (*Router) ServeHTTP(w http.ResponseWriter, req *http.Request)
 ```
 
 **Parameters:**
 - `w` (http.ResponseWriter)
-- `r` (*http.Request)
+- `req` (*http.Request)
 
 **Returns:**
   None
@@ -2854,7 +2944,7 @@ func (*Server) CONNECT(pattern string, handler http.HandlerFunc)
 DELETE registers a handler for DELETE requests.
 
 ```go
-func (*Group) DELETE(pattern string, handler http.HandlerFunc)
+func (*Server) DELETE(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -2914,7 +3004,7 @@ func (*Group) HEAD(pattern string, handler http.HandlerFunc)
 Handle registers a handler for the given method and pattern.
 
 ```go
-func (*Router) Handle(method, pattern string, handler http.HandlerFunc)
+func (*Group) Handle(method, pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -2962,7 +3052,7 @@ func (*Group) MountFunc(prefix string, fn func(r RouteRegistrar), mw ...any)
 OPTIONS registers a handler for OPTIONS requests.
 
 ```go
-func (*Server) OPTIONS(pattern string, handler http.HandlerFunc)
+func (*Group) OPTIONS(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -3035,7 +3125,7 @@ func (*Group) POST(pattern string, handler http.HandlerFunc)
 PUT registers a handler for PUT requests.
 
 ```go
-func (*Group) PUT(pattern string, handler http.HandlerFunc)
+func (*Server) PUT(pattern string, handler http.HandlerFunc)
 ```
 
 **Parameters:**
@@ -3180,7 +3270,7 @@ func (*Server) TRACE(pattern string, handler http.HandlerFunc)
 Use adds middleware to the server's middleware chain. Middleware is executed in the order it is added. Accepts Middleware (helix.Middleware is an alias for middleware.Middleware) or func(http.Handler) http.Handler.
 
 ```go
-func (*Group) Use(mw ...any)
+func (*Server) Use(mw ...any)
 ```
 
 **Parameters:**
@@ -3293,14 +3383,14 @@ func (**ast.IndexExpr) Delete(h *ast.IndexExpr) **ast.IndexExpr
 Get registers a typed GET handler for a single resource. Handler signature: func(ctx, IDRequest) (Entity, error)
 
 ```go
-func Get() (T, bool)
+func (*Ctx) Get(key string) (any, bool)
 ```
 
 **Parameters:**
-  None
+- `key` (string)
 
 **Returns:**
-- T
+- any
 - bool
 
 ### List
@@ -3464,16 +3554,14 @@ func (*ValidationErrors) Err() error
 Error implements the error interface.
 
 ```go
-func Error(w http.ResponseWriter, status int, message string) error
+func (*ValidationErrors) Error() string
 ```
 
 **Parameters:**
-- `w` (http.ResponseWriter)
-- `status` (int)
-- `message` (string)
+  None
 
 **Returns:**
-- error
+- string
 
 ### Errors
 
@@ -3613,13 +3701,12 @@ result := Attachment(/* parameters */)
 BadRequest writes a 400 Bad Request error response.
 
 ```go
-func BadRequest(w http.ResponseWriter, message string) error
+func (*Ctx) BadRequest(message string) error
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `w` | `http.ResponseWriter` | |
 | `message` | `string` | |
 
 **Returns:**
@@ -3638,17 +3725,18 @@ result := BadRequest(/* parameters */)
 Bind binds path parameters, query parameters, headers, and JSON body to a struct. The binding sources are determined by struct tags: - `path:"name"` - binds from URL path parameters - `query:"name"` - binds from URL query parameters - `header:"name"` - binds from HTTP headers - `json:"name"` - binds from JSON body - `form:"name"` - binds from form data
 
 ```go
-func (*Ctx) Bind(v any) error
+func Bind(r *http.Request) (T, error)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `v` | `any` | |
+| `r` | `*http.Request` | |
 
 **Returns:**
 | Type | Description |
 |------|-------------|
+| `T` | |
 | `error` | |
 
 **Example:**
@@ -3656,6 +3744,56 @@ func (*Ctx) Bind(v any) error
 ```go
 // Example usage of Bind
 result := Bind(/* parameters */)
+```
+
+### BindAll
+BindAll binds path parameters, query parameters, headers, and JSON body to a struct. Uses struct tags to determine binding sources: - `path:"name"` - binds from URL path parameters - `query:"name"` - binds from URL query parameters - `header:"name"` - binds from HTTP headers - `json:"name"` - binds from JSON body - `form:"name"` - binds from form data
+
+```go
+func BindAll(c *Ctx) (T, error)
+```
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `c` | `*Ctx` | |
+
+**Returns:**
+| Type | Description |
+|------|-------------|
+| `T` | |
+| `error` | |
+
+**Example:**
+
+```go
+// Example usage of BindAll
+result := BindAll(/* parameters */)
+```
+
+### BindAllValidate
+BindAllValidate binds and validates the request. Calls Validate() if the type implements Validatable.
+
+```go
+func BindAllValidate(c *Ctx) (T, error)
+```
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `c` | `*Ctx` | |
+
+**Returns:**
+| Type | Description |
+|------|-------------|
+| `T` | |
+| `error` | |
+
+**Example:**
+
+```go
+// Example usage of BindAllValidate
+result := BindAllValidate(/* parameters */)
 ```
 
 ### BindAndValidate
@@ -3708,6 +3846,31 @@ func BindHeader(r *http.Request) (T, error)
 result := BindHeader(/* parameters */)
 ```
 
+### BindHeaderTo
+BindHeaderTo binds HTTP headers to a struct. Uses the `header` struct tag to determine field names.
+
+```go
+func BindHeaderTo(c *Ctx) (T, error)
+```
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `c` | `*Ctx` | |
+
+**Returns:**
+| Type | Description |
+|------|-------------|
+| `T` | |
+| `error` | |
+
+**Example:**
+
+```go
+// Example usage of BindHeaderTo
+result := BindHeaderTo(/* parameters */)
+```
+
 ### BindJSON
 BindJSON binds the JSON request body to a struct.
 
@@ -3731,6 +3894,31 @@ func BindJSON(r *http.Request) (T, error)
 ```go
 // Example usage of BindJSON
 result := BindJSON(/* parameters */)
+```
+
+### BindJSONTo
+BindJSONTo binds the JSON request body to a struct.
+
+```go
+func BindJSONTo(c *Ctx) (T, error)
+```
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `c` | `*Ctx` | |
+
+**Returns:**
+| Type | Description |
+|------|-------------|
+| `T` | |
+| `error` | |
+
+**Example:**
+
+```go
+// Example usage of BindJSONTo
+result := BindJSONTo(/* parameters */)
 ```
 
 ### BindPath
@@ -3758,6 +3946,31 @@ func BindPath(r *http.Request) (T, error)
 result := BindPath(/* parameters */)
 ```
 
+### BindPathTo
+BindPathTo binds URL path parameters to a struct. Uses the `path` struct tag to determine field names.
+
+```go
+func BindPathTo(c *Ctx) (T, error)
+```
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `c` | `*Ctx` | |
+
+**Returns:**
+| Type | Description |
+|------|-------------|
+| `T` | |
+| `error` | |
+
+**Example:**
+
+```go
+// Example usage of BindPathTo
+result := BindPathTo(/* parameters */)
+```
+
 ### BindQuery
 BindQuery binds URL query parameters to a struct. Uses the `query` struct tag to determine field names.
 
@@ -3781,6 +3994,31 @@ func BindQuery(r *http.Request) (T, error)
 ```go
 // Example usage of BindQuery
 result := BindQuery(/* parameters */)
+```
+
+### BindQueryTo
+BindQueryTo binds URL query parameters to a struct. Uses the `query` struct tag to determine field names.
+
+```go
+func BindQueryTo(c *Ctx) (T, error)
+```
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `c` | `*Ctx` | |
+
+**Returns:**
+| Type | Description |
+|------|-------------|
+| `T` | |
+| `error` | |
+
+**Example:**
+
+```go
+// Example usage of BindQueryTo
+result := BindQueryTo(/* parameters */)
 ```
 
 ### Blob
@@ -3837,20 +4075,16 @@ result := Created(/* parameters */)
 Error writes an error response with the given status code and message.
 
 ```go
-func Error(w http.ResponseWriter, status int, message string) error
+func (*BindingError) Error() string
 ```
 
 **Parameters:**
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `w` | `http.ResponseWriter` | |
-| `status` | `int` | |
-| `message` | `string` | |
+None
 
 **Returns:**
 | Type | Description |
 |------|-------------|
-| `error` | |
+| `string` | |
 
 **Example:**
 
@@ -3934,16 +4168,18 @@ result := FromContext(/* parameters */)
 Get retrieves a service from the global registry. Returns the zero value and false if not found.
 
 ```go
-func Get() (T, bool)
+func (*Ctx) Get(key string) (any, bool)
 ```
 
 **Parameters:**
-None
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `key` | `string` | |
 
 **Returns:**
 | Type | Description |
 |------|-------------|
-| `T` | |
+| `any` | |
 | `bool` | |
 
 **Example:**
@@ -3957,12 +4193,13 @@ result := Get(/* parameters */)
 HTML writes an HTML response with the given status code.
 
 ```go
-func (*Ctx) HTML(status int, html string) error
+func HTML(w http.ResponseWriter, status int, html string) error
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
+| `w` | `http.ResponseWriter` | |
 | `status` | `int` | |
 | `html` | `string` | |
 
@@ -4225,17 +4462,18 @@ result := HandleWithStatus(/* parameters */)
 Inline sets the Content-Disposition header to inline with the given filename.
 
 ```go
-func Inline(w http.ResponseWriter, filename string)
+func (*Ctx) Inline(filename string) *Ctx
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `w` | `http.ResponseWriter` | |
 | `filename` | `string` | |
 
 **Returns:**
-None
+| Type | Description |
+|------|-------------|
+| `*Ctx` | |
 
 **Example:**
 
@@ -4370,18 +4608,16 @@ result := MustFromContext(/* parameters */)
 MustGet retrieves a service from the global registry or panics.
 
 ```go
-func (*Ctx) MustGet(key string) any
+func MustGet() T
 ```
 
 **Parameters:**
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `key` | `string` | |
+None
 
 **Returns:**
 | Type | Description |
 |------|-------------|
-| `any` | |
+| `T` | |
 
 **Example:**
 
@@ -4440,12 +4676,13 @@ result := NotFound(/* parameters */)
 OK writes a 200 OK JSON response.
 
 ```go
-func (*Ctx) OK(v any) error
+func OK(w http.ResponseWriter, v any) error
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
+| `w` | `http.ResponseWriter` | |
 | `v` | `any` | |
 
 **Returns:**
@@ -4488,12 +4725,13 @@ result := Param(/* parameters */)
 ParamInt returns the value of a path parameter as an int. Returns an error if the parameter does not exist or cannot be parsed.
 
 ```go
-func (*Ctx) ParamInt(name string) (int, error)
+func ParamInt(r *http.Request, name string) (int, error)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
+| `r` | `*http.Request` | |
 | `name` | `string` | |
 
 **Returns:**
@@ -4513,12 +4751,13 @@ result := ParamInt(/* parameters */)
 ParamInt64 returns the value of a path parameter as an int64. Returns an error if the parameter does not exist or cannot be parsed.
 
 ```go
-func (*Ctx) ParamInt64(name string) (int64, error)
+func ParamInt64(r *http.Request, name string) (int64, error)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
+| `r` | `*http.Request` | |
 | `name` | `string` | |
 
 **Returns:**
@@ -4563,13 +4802,12 @@ result := ParamUUID(/* parameters */)
 Query returns the first value of a query parameter. Returns an empty string if the parameter does not exist.
 
 ```go
-func Query(r *http.Request, name string) string
+func (*Ctx) Query(name string) string
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `*http.Request` | |
 | `name` | `string` | |
 
 **Returns:**
@@ -4613,12 +4851,13 @@ result := QueryBool(/* parameters */)
 QueryDefault returns the first value of a query parameter or a default value.
 
 ```go
-func (*Ctx) QueryDefault(name, defaultVal string) string
+func QueryDefault(r *http.Request, name, defaultVal string) string
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
+| `r` | `*http.Request` | |
 | `name` | `string` | |
 | `defaultVal` | `string` | |
 
@@ -4663,12 +4902,13 @@ result := QueryFloat64(/* parameters */)
 QueryInt returns the first value of a query parameter as an int. Returns the default value if the parameter does not exist or cannot be parsed.
 
 ```go
-func (*Ctx) QueryInt(name string, defaultVal int) int
+func QueryInt(r *http.Request, name string, defaultVal int) int
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
+| `r` | `*http.Request` | |
 | `name` | `string` | |
 | `defaultVal` | `int` | |
 
@@ -4688,13 +4928,12 @@ result := QueryInt(/* parameters */)
 QueryInt64 returns the first value of a query parameter as an int64. Returns the default value if the parameter does not exist or cannot be parsed.
 
 ```go
-func QueryInt64(r *http.Request, name string, defaultVal int64) int64
+func (*Ctx) QueryInt64(name string, defaultVal int64) int64
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `*http.Request` | |
 | `name` | `string` | |
 | `defaultVal` | `int64` | |
 
@@ -4714,13 +4953,12 @@ result := QueryInt64(/* parameters */)
 QuerySlice returns all values of a query parameter as a string slice. Returns nil if the parameter does not exist.
 
 ```go
-func QuerySlice(r *http.Request, name string) []string
+func (*Ctx) QuerySlice(name string) []string
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `*http.Request` | |
 | `name` | `string` | |
 
 **Returns:**
@@ -4786,13 +5024,13 @@ result := Redirect(/* parameters */)
 Register registers a service in the global registry by its type.
 
 ```go
-func (ModuleFunc) Register(r RouteRegistrar)
+func Register(service T)
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `r` | `RouteRegistrar` | |
+| `service` | `T` | |
 
 **Returns:**
 None
@@ -4834,13 +5072,12 @@ result := Stream(/* parameters */)
 Text writes a plain text response with the given status code.
 
 ```go
-func Text(w http.ResponseWriter, status int, text string) error
+func (*Ctx) Text(status int, text string) error
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `w` | `http.ResponseWriter` | |
 | `status` | `int` | |
 | `text` | `string` | |
 
@@ -4860,12 +5097,13 @@ result := Text(/* parameters */)
 Unauthorized writes a 401 Unauthorized error response.
 
 ```go
-func (*Ctx) Unauthorized(message string) error
+func Unauthorized(w http.ResponseWriter, message string) error
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
+| `w` | `http.ResponseWriter` | |
 | `message` | `string` | |
 
 **Returns:**

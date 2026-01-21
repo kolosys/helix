@@ -6,13 +6,13 @@ This example demonstrates basic usage of the library.
 
 ```go
 // Package main demonstrates the most basic usage of the helix framework.
+// The recommended pattern is HandleCtx, which provides a fluent API with automatic error handling.
 package main
 
 import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/kolosys/helix"
@@ -24,14 +24,14 @@ func main() {
 		Addr: ":8080",
 	})
 
-	// Simple handler using http.HandlerFunc
-	s.GET("/", func(w http.ResponseWriter, r *http.Request) {
-		helix.OK(w, map[string]string{
+	// Recommended: HandleCtx provides a fluent API with automatic error handling
+	s.GET("/", helix.HandleCtx(func(c *helix.Ctx) error {
+		return c.OK(map[string]string{
 			"message": "Welcome to Helix!",
 		})
-	})
+	}))
 
-	// Handler using Ctx for a cleaner API
+	// HandleCtx with query parameters
 	s.GET("/hello", helix.HandleCtx(func(c *helix.Ctx) error {
 		name := c.QueryDefault("name", "World")
 		return c.OK(map[string]string{
