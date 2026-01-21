@@ -23,6 +23,52 @@ var (
 	ErrInvalidFieldValue = errors.New("helix: invalid field value")
 )
 
+// BindingError represents a detailed binding error with source information and hints.
+type BindingError struct {
+	Field   string // The field name that failed
+	Source  string // The binding source (path, query, header, json, form)
+	Reason  string // Why the binding failed
+	Hint    string // A helpful hint for fixing the error
+	Wrapped error  // The underlying error, if any
+}
+
+// Error implements the error interface.
+func (e *BindingError) Error() string {
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "helix: binding %s field %q failed: %s", e.Source, e.Field, e.Reason)
+	if e.Hint != "" {
+		fmt.Fprintf(&sb, " (hint: %s)", e.Hint)
+	}
+	return sb.String()
+}
+
+// Unwrap returns the underlying error.
+func (e *BindingError) Unwrap() error {
+	return e.Wrapped
+}
+
+// newRequiredFieldError creates a BindingError for a missing required field.
+func newRequiredFieldError(source, field string) *BindingError {
+	return &BindingError{
+		Field:   field,
+		Source:  source,
+		Reason:  "required field is missing",
+		Hint:    fmt.Sprintf("provide the %s parameter %q or remove the required tag", source, field),
+		Wrapped: ErrRequiredField,
+	}
+}
+
+// newInvalidFieldError creates a BindingError for an invalid field value.
+func newInvalidFieldError(source, field string, err error) *BindingError {
+	return &BindingError{
+		Field:   field,
+		Source:  source,
+		Reason:  fmt.Sprintf("invalid value: %v", err),
+		Hint:    fmt.Sprintf("check that the %s parameter %q has the correct type", source, field),
+		Wrapped: ErrInvalidFieldValue,
+	}
+}
+
 // Struct tag names for binding sources
 const (
 	tagPath   = "path"
@@ -86,13 +132,13 @@ func Bind[T any](r *http.Request) (T, error) {
 
 		if value == "" {
 			if field.required {
-				return result, fmt.Errorf("%w: %s", ErrRequiredField, field.name)
+				return result, newRequiredFieldError(field.source, field.name)
 			}
 			continue
 		}
 
 		if err := setFieldValue(resultVal.Field(field.index), value); err != nil {
-			return result, fmt.Errorf("%w: field %s: %v", ErrInvalidFieldValue, field.name, err)
+			return result, newInvalidFieldError(field.source, field.name, err)
 		}
 	}
 
@@ -150,13 +196,13 @@ func BindQuery[T any](r *http.Request) (T, error) {
 		value := Query(r, field.name)
 		if value == "" {
 			if field.required {
-				return result, fmt.Errorf("%w: %s", ErrRequiredField, field.name)
+				return result, newRequiredFieldError(tagQuery, field.name)
 			}
 			continue
 		}
 
 		if err := setFieldValue(resultVal.Field(field.index), value); err != nil {
-			return result, fmt.Errorf("%w: field %s: %v", ErrInvalidFieldValue, field.name, err)
+			return result, newInvalidFieldError(tagQuery, field.name, err)
 		}
 	}
 
@@ -181,13 +227,13 @@ func BindPath[T any](r *http.Request) (T, error) {
 		value := Param(r, field.name)
 		if value == "" {
 			if field.required {
-				return result, fmt.Errorf("%w: %s", ErrRequiredField, field.name)
+				return result, newRequiredFieldError(tagPath, field.name)
 			}
 			continue
 		}
 
 		if err := setFieldValue(resultVal.Field(field.index), value); err != nil {
-			return result, fmt.Errorf("%w: field %s: %v", ErrInvalidFieldValue, field.name, err)
+			return result, newInvalidFieldError(tagPath, field.name, err)
 		}
 	}
 
@@ -212,13 +258,13 @@ func BindHeader[T any](r *http.Request) (T, error) {
 		value := r.Header.Get(field.name)
 		if value == "" {
 			if field.required {
-				return result, fmt.Errorf("%w: %s", ErrRequiredField, field.name)
+				return result, newRequiredFieldError(tagHeader, field.name)
 			}
 			continue
 		}
 
 		if err := setFieldValue(resultVal.Field(field.index), value); err != nil {
-			return result, fmt.Errorf("%w: field %s: %v", ErrInvalidFieldValue, field.name, err)
+			return result, newInvalidFieldError(tagHeader, field.name, err)
 		}
 	}
 

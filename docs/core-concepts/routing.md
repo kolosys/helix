@@ -185,10 +185,23 @@ s.Static("/assets/", "./public")
 ```go
 s := helix.New(nil)
 
-// Simple routes
-s.GET("/", homeHandler)
-s.GET("/about", aboutHandler)
-s.POST("/contact", contactHandler)
+// Simple routes using HandleCtx
+s.GET("/", helix.HandleCtx(func(c *helix.Ctx) error {
+    return c.OK(map[string]string{"message": "Welcome"})
+}))
+
+s.GET("/users/{id}", helix.HandleCtx(func(c *helix.Ctx) error {
+    id := c.Param("id")
+    return c.OK(map[string]string{"user_id": id})
+}))
+
+s.POST("/users", helix.HandleCtx(func(c *helix.Ctx) error {
+    var req CreateUserRequest
+    if err := c.Bind(&req); err != nil {
+        return c.BadRequest("invalid request")
+    }
+    return c.Created(map[string]string{"name": req.Name})
+}))
 ```
 
 ### RESTful API
@@ -384,8 +397,7 @@ func (m *UserModule) Register(r helix.RouteRegistrar) {
 func (m *UserModule) list(c *helix.Ctx) error {
     users, err := m.service.List(c.Context())
     if err != nil {
-        m.logger.ErrorContext(c.Context(), "failed to list users", logs.Err(err))
-        return err
+        return helix.NotFoundf("failed to list users: %v", err)
     }
     return c.OK(users)
 }

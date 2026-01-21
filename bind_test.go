@@ -1,6 +1,7 @@
 package helix_test
 
 import (
+	"errors"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -337,5 +338,144 @@ func BenchmarkBindComplex(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		Bind[Request](req)
+	}
+}
+
+// -----------------------------------------------------------------------------
+// Tests for Improved Error Messages
+// -----------------------------------------------------------------------------
+
+func TestBindingError_Format(t *testing.T) {
+	type Request struct {
+		Name string `query:"name,required"`
+	}
+
+	req := httptest.NewRequest("GET", "/", nil)
+	_, err := Bind[Request](req)
+
+	if err == nil {
+		t.Fatal("expected error for missing required field")
+	}
+
+	errStr := err.Error()
+	// Check that error contains field name
+	if !strings.Contains(errStr, "name") {
+		t.Errorf("error should contain field name 'name', got: %s", errStr)
+	}
+	// Check that error contains source
+	if !strings.Contains(errStr, "query") {
+		t.Errorf("error should contain source 'query', got: %s", errStr)
+	}
+	// Check that error contains hint
+	if !strings.Contains(errStr, "hint") {
+		t.Errorf("error should contain hint, got: %s", errStr)
+	}
+}
+
+func TestBindingError_PathRequired(t *testing.T) {
+	type Request struct {
+		ID int `path:"id,required"`
+	}
+
+	req := httptest.NewRequest("GET", "/", nil)
+	_, err := BindPath[Request](req)
+
+	if err == nil {
+		t.Fatal("expected error for missing required path param")
+	}
+
+	errStr := err.Error()
+	if !strings.Contains(errStr, "path") {
+		t.Errorf("error should contain source 'path', got: %s", errStr)
+	}
+}
+
+func TestBindingError_HeaderRequired(t *testing.T) {
+	type Request struct {
+		Token string `header:"Authorization,required"`
+	}
+
+	req := httptest.NewRequest("GET", "/", nil)
+	_, err := BindHeader[Request](req)
+
+	if err == nil {
+		t.Fatal("expected error for missing required header")
+	}
+
+	errStr := err.Error()
+	if !strings.Contains(errStr, "header") {
+		t.Errorf("error should contain source 'header', got: %s", errStr)
+	}
+}
+
+func TestBindingError_InvalidValue(t *testing.T) {
+	type Request struct {
+		Age int `query:"age"`
+	}
+
+	req := httptest.NewRequest("GET", "/?age=not-a-number", nil)
+	_, err := Bind[Request](req)
+
+	if err == nil {
+		t.Fatal("expected error for invalid value")
+	}
+
+	errStr := err.Error()
+	// Check that error contains field name
+	if !strings.Contains(errStr, "age") {
+		t.Errorf("error should contain field name 'age', got: %s", errStr)
+	}
+	// Check that error contains source
+	if !strings.Contains(errStr, "query") {
+		t.Errorf("error should contain source 'query', got: %s", errStr)
+	}
+	// Check that error contains hint about type
+	if !strings.Contains(errStr, "hint") {
+		t.Errorf("error should contain hint, got: %s", errStr)
+	}
+}
+
+func TestBindingError_Unwrap(t *testing.T) {
+	type Request struct {
+		Name string `query:"name,required"`
+	}
+
+	req := httptest.NewRequest("GET", "/", nil)
+	_, err := Bind[Request](req)
+
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	// Check that we can unwrap to the sentinel error
+	var bindErr *BindingError
+	if !errors.As(err, &bindErr) {
+		t.Error("expected error to be *BindingError")
+	}
+
+	if !errors.Is(bindErr.Unwrap(), ErrRequiredField) {
+		t.Error("expected wrapped error to be ErrRequiredField")
+	}
+}
+
+func TestBindingError_InvalidFieldUnwrap(t *testing.T) {
+	type Request struct {
+		Value int `query:"value"`
+	}
+
+	req := httptest.NewRequest("GET", "/?value=abc", nil)
+	_, err := Bind[Request](req)
+
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	var bindErr *BindingError
+	if !errors.As(err, &bindErr) {
+		t.Error("expected error to be *BindingError")
+	}
+
+	if !errors.Is(bindErr.Unwrap(), ErrInvalidFieldValue) {
+		t.Error("expected wrapped error to be ErrInvalidFieldValue")
 	}
 }

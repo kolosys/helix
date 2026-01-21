@@ -69,9 +69,33 @@ s := helix.Default(nil)
 
 ### Handler Types
 
-Helix supports three handler styles:
+Helix supports three handler patterns. The recommended approach is `HandleCtx`:
 
-#1. **Standard Handler**: Works with any `http.HandlerFunc`
+**Recommended: HandleCtx** - Uses `Ctx` for fluent API with automatic error handling
+
+```go
+s.GET("/users/{id}", helix.HandleCtx(func(c *helix.Ctx) error {
+    id, err := c.ParamInt("id")
+    if err != nil {
+        return c.BadRequest("invalid user ID")
+    }
+    user, err := userService.Get(c.Context(), id)
+    if err != nil {
+        return helix.NotFoundf("user %d not found", id)
+    }
+    return c.OK(user)
+}))
+```
+
+**Advanced: Typed Handlers** - Generic handlers with automatic binding
+
+```go
+s.POST("/users", helix.Handle(func(ctx context.Context, req CreateRequest) (User, error) {
+    return userService.Create(ctx, req)
+}))
+```
+
+**Compatibility: http.HandlerFunc** - Standard library handlers
 
 ```go
 s.GET("/", func(w http.ResponseWriter, r *http.Request) {
@@ -79,21 +103,7 @@ s.GET("/", func(w http.ResponseWriter, r *http.Request) {
 })
 ```
 
-#2. **Ctx Handler**: Uses `Ctx` for fluent API
-
-```go
-s.GET("/users", helix.HandleCtx(func(c *helix.Ctx) error {
-    return c.OK(users)
-}))
-```
-
-#3. **Typed Handler**: Generic handlers with automatic binding
-
-```go
-s.POST("/users", helix.Handle(func(ctx context.Context, req CreateRequest) (User, error) {
-    return userService.Create(ctx, req)
-}))
-```
+See [Handler Patterns](./handler-patterns.md) for detailed guidance on when to use each pattern.
 
 ### Request Binding
 
@@ -183,16 +193,14 @@ Helix prioritizes:
 ```go
 package main
 
-import (
-    "github.com/kolosys/helix"
-)
+import "github.com/kolosys/helix"
 
 func main() {
     s := helix.Default(nil)
 
-    s.GET("/", func(w http.ResponseWriter, r *http.Request) {
-        helix.OK(w, map[string]string{"message": "Hello, World!"})
-    })
+    s.GET("/", helix.HandleCtx(func(c *helix.Ctx) error {
+        return c.OK(map[string]string{"message": "Hello, World!"})
+    }))
 
     s.Start(":8080")
 }

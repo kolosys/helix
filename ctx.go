@@ -179,6 +179,62 @@ func (c *Ctx) BindJSON(v any) error {
 	return c.Bind(v)
 }
 
+// BindJSONOrError binds JSON body and returns a Problem on failure.
+// Returns nil if binding succeeds, or a BadRequest Problem if it fails.
+// This is a convenience method for the common pattern of returning an error response on bind failure.
+func (c *Ctx) BindJSONOrError(v any) error {
+	if err := c.Bind(v); err != nil {
+		return ErrBadRequest.WithErr(err)
+	}
+	return nil
+}
+
+// -----------------------------------------------------------------------------
+// Generic Binding Functions
+// -----------------------------------------------------------------------------
+// Note: These are package-level functions taking *Ctx because Go doesn't allow
+// generic methods on structs. This is the standard Go pattern (same as json.Unmarshal).
+
+// BindAll binds path parameters, query parameters, headers, and JSON body to a struct.
+// Uses struct tags to determine binding sources:
+//   - `path:"name"` - binds from URL path parameters
+//   - `query:"name"` - binds from URL query parameters
+//   - `header:"name"` - binds from HTTP headers
+//   - `json:"name"` - binds from JSON body
+//   - `form:"name"` - binds from form data
+func BindAll[T any](c *Ctx) (T, error) {
+	return Bind[T](c.Request)
+}
+
+// BindAllValidate binds and validates the request.
+// Calls Validate() if the type implements Validatable.
+func BindAllValidate[T any](c *Ctx) (T, error) {
+	return BindAndValidate[T](c.Request)
+}
+
+// BindQueryTo binds URL query parameters to a struct.
+// Uses the `query` struct tag to determine field names.
+func BindQueryTo[T any](c *Ctx) (T, error) {
+	return BindQuery[T](c.Request)
+}
+
+// BindPathTo binds URL path parameters to a struct.
+// Uses the `path` struct tag to determine field names.
+func BindPathTo[T any](c *Ctx) (T, error) {
+	return BindPath[T](c.Request)
+}
+
+// BindHeaderTo binds HTTP headers to a struct.
+// Uses the `header` struct tag to determine field names.
+func BindHeaderTo[T any](c *Ctx) (T, error) {
+	return BindHeader[T](c.Request)
+}
+
+// BindJSONTo binds the JSON request body to a struct.
+func BindJSONTo[T any](c *Ctx) (T, error) {
+	return BindJSON[T](c.Request)
+}
+
 // -----------------------------------------------------------------------------
 // Response Methods (Chainable)
 // -----------------------------------------------------------------------------

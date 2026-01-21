@@ -520,3 +520,322 @@ func BenchmarkCtx_QueryAccess(b *testing.B) {
 		s.ServeHTTP(rec, req)
 	}
 }
+
+// -----------------------------------------------------------------------------
+// Tests for Generic Ctx Bind Functions
+// -----------------------------------------------------------------------------
+
+func TestBindAll(t *testing.T) {
+	type GetUserRequest struct {
+		ID   int    `path:"id"`
+		Name string `query:"name"`
+	}
+
+	s := New(nil)
+	var gotReq GetUserRequest
+
+	s.GET("/users/{id}", HandleCtx(func(c *Ctx) error {
+		req, err := BindAll[GetUserRequest](c)
+		if err != nil {
+			return BadRequestf("binding failed: %v", err)
+		}
+		gotReq = req
+		return c.OK(req)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/users/123?name=John", nil)
+	rec := httptest.NewRecorder()
+	s.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected status 200, got %d", rec.Code)
+	}
+	if gotReq.ID != 123 {
+		t.Errorf("expected ID 123, got %d", gotReq.ID)
+	}
+	if gotReq.Name != "John" {
+		t.Errorf("expected Name 'John', got '%s'", gotReq.Name)
+	}
+}
+
+func TestBindAllValidate(t *testing.T) {
+	s := New(nil)
+
+	s.POST("/users", HandleCtx(func(c *Ctx) error {
+		req, err := BindAllValidate[ValidatableRequest](c)
+		if err != nil {
+			return err
+		}
+		return c.Created(req)
+	}))
+
+	// Test with valid request
+	body := `{"name":"John","email":"john@example.com"}`
+	req := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+	req.Header.Set("Content-Type", MIMEApplicationJSONCharsetUTF8)
+	rec := httptest.NewRecorder()
+	s.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusCreated {
+		t.Errorf("expected status 201, got %d", rec.Code)
+	}
+}
+
+func TestBindAllValidate_Invalid(t *testing.T) {
+	s := New(nil)
+
+	s.POST("/users", HandleCtx(func(c *Ctx) error {
+		req, err := BindAllValidate[ValidatableRequest](c)
+		if err != nil {
+			return err
+		}
+		return c.Created(req)
+	}))
+
+	// Test with invalid request (missing required field)
+	body := `{"name":"","email":"john@example.com"}`
+	req := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+	req.Header.Set("Content-Type", MIMEApplicationJSONCharsetUTF8)
+	rec := httptest.NewRecorder()
+	s.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnprocessableEntity {
+		t.Errorf("expected status 422, got %d", rec.Code)
+	}
+}
+
+type ValidatableRequest struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
+func (r *ValidatableRequest) Validate() error {
+	v := NewValidationErrors()
+	if r.Name == "" {
+		v.Add("name", "name is required")
+	}
+	return v.Err()
+}
+
+func TestBindQueryTo(t *testing.T) {
+	type QueryRequest struct {
+		Page  int    `query:"page"`
+		Limit int    `query:"limit"`
+		Sort  string `query:"sort"`
+	}
+
+	s := New(nil)
+	var gotReq QueryRequest
+
+	s.GET("/list", HandleCtx(func(c *Ctx) error {
+		req, err := BindQueryTo[QueryRequest](c)
+		if err != nil {
+			return BadRequestf("binding failed")
+		}
+		gotReq = req
+		return c.OK(req)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/list?page=2&limit=50&sort=created_at", nil)
+	rec := httptest.NewRecorder()
+	s.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected status 200, got %d", rec.Code)
+	}
+	if gotReq.Page != 2 {
+		t.Errorf("expected Page 2, got %d", gotReq.Page)
+	}
+	if gotReq.Limit != 50 {
+		t.Errorf("expected Limit 50, got %d", gotReq.Limit)
+	}
+	if gotReq.Sort != "created_at" {
+		t.Errorf("expected Sort 'created_at', got '%s'", gotReq.Sort)
+	}
+}
+
+func TestBindPathTo(t *testing.T) {
+	type PathRequest struct {
+		UserID int    `path:"userId"`
+		PostID string `path:"postId"`
+	}
+
+	s := New(nil)
+	var gotReq PathRequest
+
+	s.GET("/users/{userId}/posts/{postId}", HandleCtx(func(c *Ctx) error {
+		req, err := BindPathTo[PathRequest](c)
+		if err != nil {
+			return BadRequestf("binding failed")
+		}
+		gotReq = req
+		return c.OK(req)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/users/42/posts/abc123", nil)
+	rec := httptest.NewRecorder()
+	s.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected status 200, got %d", rec.Code)
+	}
+	if gotReq.UserID != 42 {
+		t.Errorf("expected UserID 42, got %d", gotReq.UserID)
+	}
+	if gotReq.PostID != "abc123" {
+		t.Errorf("expected PostID 'abc123', got '%s'", gotReq.PostID)
+	}
+}
+
+func TestBindHeaderTo(t *testing.T) {
+	type HeaderRequest struct {
+		Auth        string `header:"Authorization"`
+		ContentType string `header:"Content-Type"`
+	}
+
+	s := New(nil)
+	var gotReq HeaderRequest
+
+	s.GET("/headers", HandleCtx(func(c *Ctx) error {
+		req, err := BindHeaderTo[HeaderRequest](c)
+		if err != nil {
+			return BadRequestf("binding failed")
+		}
+		gotReq = req
+		return c.OK(req)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/headers", nil)
+	req.Header.Set("Authorization", "Bearer token123")
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	s.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected status 200, got %d", rec.Code)
+	}
+	if gotReq.Auth != "Bearer token123" {
+		t.Errorf("expected Auth 'Bearer token123', got '%s'", gotReq.Auth)
+	}
+	if gotReq.ContentType != "application/json" {
+		t.Errorf("expected ContentType 'application/json', got '%s'", gotReq.ContentType)
+	}
+}
+
+func TestBindJSONTo(t *testing.T) {
+	type JSONRequest struct {
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+
+	s := New(nil)
+	var gotReq JSONRequest
+
+	s.POST("/json", HandleCtx(func(c *Ctx) error {
+		req, err := BindJSONTo[JSONRequest](c)
+		if err != nil {
+			return BadRequestf("binding failed")
+		}
+		gotReq = req
+		return c.OK(req)
+	}))
+
+	body := `{"name":"John","email":"john@example.com"}`
+	req := httptest.NewRequest(http.MethodPost, "/json", strings.NewReader(body))
+	req.Header.Set("Content-Type", MIMEApplicationJSONCharsetUTF8)
+	rec := httptest.NewRecorder()
+	s.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected status 200, got %d", rec.Code)
+	}
+	if gotReq.Name != "John" {
+		t.Errorf("expected Name 'John', got '%s'", gotReq.Name)
+	}
+	if gotReq.Email != "john@example.com" {
+		t.Errorf("expected Email 'john@example.com', got '%s'", gotReq.Email)
+	}
+}
+
+func TestCtx_BindJSONOrError(t *testing.T) {
+	type Request struct {
+		Name string `json:"name"`
+	}
+
+	s := New(nil)
+
+	s.POST("/users", HandleCtx(func(c *Ctx) error {
+		var req Request
+		if err := c.BindJSONOrError(&req); err != nil {
+			return err
+		}
+		return c.Created(req)
+	}))
+
+	// Valid JSON
+	body := `{"name":"John"}`
+	req := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+	req.Header.Set("Content-Type", MIMEApplicationJSONCharsetUTF8)
+	rec := httptest.NewRecorder()
+	s.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusCreated {
+		t.Errorf("expected status 201, got %d", rec.Code)
+	}
+}
+
+func TestCtx_BindJSONOrError_Invalid(t *testing.T) {
+	type Request struct {
+		Name string `json:"name"`
+	}
+
+	s := New(nil)
+
+	s.POST("/users", HandleCtx(func(c *Ctx) error {
+		var req Request
+		if err := c.BindJSONOrError(&req); err != nil {
+			return err
+		}
+		return c.Created(req)
+	}))
+
+	// Invalid JSON
+	body := `not valid json`
+	req := httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(body))
+	req.Header.Set("Content-Type", MIMEApplicationJSONCharsetUTF8)
+	rec := httptest.NewRecorder()
+	s.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("expected status 400, got %d", rec.Code)
+	}
+
+	// Check that it's a Problem response
+	contentType := rec.Header().Get("Content-Type")
+	if !strings.Contains(contentType, "application/problem+json") {
+		t.Errorf("expected application/problem+json, got %s", contentType)
+	}
+}
+
+func BenchmarkBindAll(b *testing.B) {
+	type Request struct {
+		ID   int    `path:"id"`
+		Name string `query:"name"`
+	}
+
+	s := New(nil)
+	s.GET("/users/{id}", HandleCtx(func(c *Ctx) error {
+		_, _ = BindAll[Request](c)
+		return c.NoContent()
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/users/123?name=John", nil)
+
+	b.ResetTimer()
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		rec := httptest.NewRecorder()
+		s.ServeHTTP(rec, req)
+	}
+}

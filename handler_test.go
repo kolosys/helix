@@ -533,7 +533,7 @@ func TestHandleVersionsWithValidatable(t *testing.T) {
 			name:           "v1 with invalid request",
 			body:           `{"email":""}`,
 			headerValue:    "v1",
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus: http.StatusUnprocessableEntity, // Validation errors return 422
 		},
 	}
 

@@ -41,36 +41,35 @@ Requires Go 1.24 or later.
 
 ## Quick Start
 
+The recommended way to build handlers in Helix is using `HandleCtx`, which provides a fluent API with automatic error handling:
+
 ```go
 package main
 
-import (
-    "context"
-    "net/http"
-
-    "github.com/kolosys/helix"
-)
+import "github.com/kolosys/helix"
 
 func main() {
-    // Create server with default middleware (RequestID, Logger, Recover)
-    s := helix.Default()
+    s := helix.Default(nil)
 
-    // Simple handler
-    s.GET("/", func(w http.ResponseWriter, r *http.Request) {
-        helix.OK(w, map[string]string{"message": "Hello, World!"})
-    })
-
-    // Handler with Ctx for cleaner API
-    s.GET("/hello", helix.HandleCtx(func(c *helix.Ctx) error {
-        name := c.QueryDefault("name", "World")
-        return c.OK(map[string]string{"message": "Hello, " + name + "!"})
+    s.GET("/", helix.HandleCtx(func(c *helix.Ctx) error {
+        return c.OK(map[string]string{"message": "Hello, World!"})
     }))
 
-    // Typed handler with automatic binding
-    s.GET("/users/{id}", helix.Handle(func(ctx context.Context, req struct {
-        ID int `path:"id"`
-    }) (User, error) {
-        return getUser(ctx, req.ID)
+    s.GET("/users/{id}", helix.HandleCtx(func(c *helix.Ctx) error {
+        id, err := c.ParamInt("id")
+        if err != nil {
+            return c.BadRequest("invalid user ID")
+        }
+        return c.OK(User{ID: id, Name: "John Doe"})
+    }))
+
+    s.POST("/users", helix.HandleCtx(func(c *helix.Ctx) error {
+        var req CreateUserRequest
+        if err := c.Bind(&req); err != nil {
+            return c.BadRequest("invalid request body")
+        }
+        user := User{ID: 1, Name: req.Name}
+        return c.Created(user)
     }))
 
     s.Start(":8080")
@@ -81,8 +80,8 @@ type User struct {
     Name string `json:"name"`
 }
 
-func getUser(ctx context.Context, id int) (User, error) {
-    return User{ID: id, Name: "John Doe"}, nil
+type CreateUserRequest struct {
+    Name string `json:"name"`
 }
 ```
 
@@ -155,26 +154,19 @@ s.Static("/assets/", "./public")
 
 ## Handlers
 
-Helix provides multiple handler types for different use cases:
+Helix supports three handler patterns. Choose based on your needs:
 
-### Standard Handler
+### Recommended: HandleCtx
 
-Works with any `http.HandlerFunc`:
-
-```go
-s.GET("/", func(w http.ResponseWriter, r *http.Request) {
-    helix.JSON(w, http.StatusOK, data)
-})
-```
-
-### Context Handler (`HandleCtx`)
-
-Uses the unified `Ctx` type for fluent API:
+The `HandleCtx` pattern is recommended for most applications. It provides a fluent API with automatic error conversion to RFC 7807 responses:
 
 ```go
-s.GET("/users", helix.HandleCtx(func(c *helix.Ctx) error {
+s.GET("/users/{id}", helix.HandleCtx(func(c *helix.Ctx) error {
     // Access path params
-    id := c.Param("id")
+    id, err := c.ParamInt("id")
+    if err != nil {
+        return c.BadRequest("invalid user ID")
+    }
 
     // Access query params
     page := c.QueryInt("page", 1)
@@ -194,9 +186,9 @@ s.GET("/users", helix.HandleCtx(func(c *helix.Ctx) error {
 }))
 ```
 
-### Typed Handler (`Handle`)
+### Advanced: Typed Handlers
 
-Generic handlers with automatic request binding and JSON response:
+Use typed handlers when you want automatic request binding and compile-time type safety:
 
 ```go
 type CreateUserRequest struct {
@@ -220,33 +212,28 @@ s.POST("/users", helix.Handle(func(ctx context.Context, req CreateUserRequest) (
 }))
 ```
 
-### Handler Variants
+**Handler Variants:**
 
 ```go
-// Returns 201 Created
-helix.HandleCreated(handler)
+helix.HandleCreated(handler)       // Returns 201 Created
+helix.HandleAccepted(handler)      // Returns 202 Accepted
+helix.HandleWithStatus(201, h)     // Custom status code
+helix.HandleNoRequest(handler)     // No request body (GET)
+helix.HandleNoResponse(handler)    // No response body (DELETE)
+helix.HandleEmpty(handler)         // No request, no response
+```
 
-// Returns 202 Accepted
-helix.HandleAccepted(handler)
+### Compatibility: http.HandlerFunc
 
-// Custom status code
-helix.HandleWithStatus(http.StatusCreated, handler)
+Use standard handlers for stdlib compatibility and maximum control:
 
-// No request body (GET endpoints)
-helix.HandleNoRequest(func(ctx context.Context) ([]User, error) {
-    return userService.List(ctx)
-})
-
-// No response body (DELETE endpoints)
-helix.HandleNoResponse(func(ctx context.Context, req DeleteRequest) error {
-    return userService.Delete(ctx, req.ID)
-})
-
-// No request, no response
-helix.HandleEmpty(func(ctx context.Context) error {
-    return pingService(ctx)
+```go
+s.GET("/", func(w http.ResponseWriter, r *http.Request) {
+    helix.OK(w, map[string]string{"status": "ok"})
 })
 ```
+
+See [Handler Patterns](./docs/core-concepts/handler-patterns.md) for detailed guidance on when to use each pattern.
 
 ## Request Binding
 
