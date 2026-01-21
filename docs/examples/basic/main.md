@@ -70,6 +70,7 @@ func main() {
 		log.Fatal(err)
 	}
 }
+
 ```
 
 ## Running the Example
@@ -79,4 +80,10 @@ To run this example:
 ```bash
 cd basic
 go run main.go
+```
+
+## Expected Output
+
+```
+Hello from Proton examples!
 ```

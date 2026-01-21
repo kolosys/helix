@@ -291,71 +291,6 @@ func DefaultETagConfig() ETagConfig
 **Returns:**
 - ETagConfig
 
-### LogEntry
-LogEntry represents a JSON log entry.
-
-#### Example Usage
-
-```go
-// Create a new LogEntry
-logentry := LogEntry{
-    Timestamp: "example",
-    Method: "example",
-    Path: "example",
-    URL: "example",
-    Status: 42,
-    Latency: "example",
-    LatencyMs: 3.14,
-    Size: 42,
-    RemoteAddr: "example",
-    UserAgent: "example",
-    Referer: "example",
-    RequestID: "example",
-    Error: "example",
-    CustomFields: map[],
-}
-```
-
-#### Type Definition
-
-```go
-type LogEntry struct {
-    Timestamp string `json:"timestamp"`
-    Method string `json:"method"`
-    Path string `json:"path"`
-    URL string `json:"url,omitempty"`
-    Status int `json:"status"`
-    Latency string `json:"latency"`
-    LatencyMs float64 `json:"latency_ms"`
-    Size int `json:"size"`
-    RemoteAddr string `json:"remote_addr"`
-    UserAgent string `json:"user_agent,omitempty"`
-    Referer string `json:"referer,omitempty"`
-    RequestID string `json:"request_id,omitempty"`
-    Error string `json:"error,omitempty"`
-    CustomFields map[string]string `json:"custom,omitempty"`
-}
-```
-
-### Fields
-
-| Field | Type | Description |
-| ----- | ---- | ----------- |
-| Timestamp | `string` |  |
-| Method | `string` |  |
-| Path | `string` |  |
-| URL | `string` |  |
-| Status | `int` |  |
-| Latency | `string` |  |
-| LatencyMs | `float64` |  |
-| Size | `int` |  |
-| RemoteAddr | `string` |  |
-| UserAgent | `string` |  |
-| Referer | `string` |  |
-| RequestID | `string` |  |
-| Error | `string` |  |
-| CustomFields | `map[string]string` |  |
-
 ### LogFormat
 LogFormat represents a predefined log format.
 
@@ -373,6 +308,155 @@ var value LogFormat
 type LogFormat string
 ```
 
+### LogOutputFunc
+LogOutputFunc is a callback that receives log values and outputs them. This is the single output mechanism - use helpers for common formats.
+
+#### Example Usage
+
+```go
+// Example usage of LogOutputFunc
+var value LogOutputFunc
+// Initialize with appropriate value
+```
+
+#### Type Definition
+
+```go
+type LogOutputFunc func(v LogValues)
+```
+
+### Constructor Functions
+
+### TextOutput
+
+TextOutput returns a LogOutputFunc that writes Morgan.js-style formatted logs.
+
+```go
+func TextOutput(w io.Writer, format LogFormat) LogOutputFunc
+```
+
+**Parameters:**
+- `w` (io.Writer)
+- `format` (LogFormat)
+
+**Returns:**
+- LogOutputFunc
+
+### TextOutputCustom
+
+TextOutputCustom returns a LogOutputFunc with a custom format string.
+
+```go
+func TextOutputCustom(w io.Writer, format string, opts ...TextOutputOptions) LogOutputFunc
+```
+
+**Parameters:**
+- `w` (io.Writer)
+- `format` (string)
+- `opts` (...TextOutputOptions)
+
+**Returns:**
+- LogOutputFunc
+
+### TextOutputWithOptions
+
+TextOutputWithOptions returns a LogOutputFunc with custom options.
+
+```go
+func TextOutputWithOptions(w io.Writer, format LogFormat, opts TextOutputOptions) LogOutputFunc
+```
+
+**Parameters:**
+- `w` (io.Writer)
+- `format` (LogFormat)
+- `opts` (TextOutputOptions)
+
+**Returns:**
+- LogOutputFunc
+
+### LogValues
+LogValues contains all extracted request/response data for logging.
+
+#### Example Usage
+
+```go
+// Create a new LogValues
+logvalues := LogValues{
+    Method: "example",
+    Path: "example",
+    URI: "example",
+    Host: "example",
+    Protocol: "example",
+    RemoteIP: "example",
+    UserAgent: "example",
+    Referer: "example",
+    ContentLength: 42,
+    ContentType: "example",
+    Status: 42,
+    ResponseSize: 42,
+    Latency: /* value */,
+    Error: error{},
+    RequestID: "example",
+    StartTime: /* value */,
+    Headers: map[],
+    QueryParams: map[],
+    FormValues: map[],
+    CustomFields: map[],
+}
+```
+
+#### Type Definition
+
+```go
+type LogValues struct {
+    Method string
+    Path string
+    URI string
+    Host string
+    Protocol string
+    RemoteIP string
+    UserAgent string
+    Referer string
+    ContentLength int64
+    ContentType string
+    Status int
+    ResponseSize int
+    Latency time.Duration
+    Error error
+    RequestID string
+    StartTime time.Time
+    Headers map[string]string
+    QueryParams map[string]string
+    FormValues map[string]string
+    CustomFields map[string]string
+}
+```
+
+### Fields
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| Method | `string` |  |
+| Path | `string` |  |
+| URI | `string` |  |
+| Host | `string` |  |
+| Protocol | `string` |  |
+| RemoteIP | `string` |  |
+| UserAgent | `string` |  |
+| Referer | `string` |  |
+| ContentLength | `int64` |  |
+| ContentType | `string` |  |
+| Status | `int` |  |
+| ResponseSize | `int` |  |
+| Latency | `time.Duration` |  |
+| Error | `error` |  |
+| RequestID | `string` |  |
+| StartTime | `time.Time` |  |
+| Headers | `map[string]string` |  |
+| QueryParams | `map[string]string` |  |
+| FormValues | `map[string]string` |  |
+| CustomFields | `map[string]string` |  |
+
 ### LoggerConfig
 LoggerConfig configures the Logger middleware.
 
@@ -381,18 +465,15 @@ LoggerConfig configures the Logger middleware.
 ```go
 // Create a new LoggerConfig
 loggerconfig := LoggerConfig{
-    Format: LogFormat{},
-    CustomFormat: "example",
-    Output: /* value */,
+    Output: LogOutputFunc{},
     Skip: /* value */,
-    TimeFormat: "example",
     Fields: map[],
     CustomTokens: map[],
+    LogHeaders: [],
+    LogQueryParams: [],
+    LogFormValues: [],
     CaptureBody: true,
     MaxBodySize: 42,
-    JSONFields: [],
-    JSONPretty: true,
-    DisableColors: true,
 }
 ```
 
@@ -400,18 +481,15 @@ loggerconfig := LoggerConfig{
 
 ```go
 type LoggerConfig struct {
-    Format LogFormat
-    CustomFormat string
-    Output io.Writer
+    Output LogOutputFunc
     Skip func(r *http.Request) bool
-    TimeFormat string
     Fields map[string]string
     CustomTokens map[string]TokenExtractor
+    LogHeaders []string
+    LogQueryParams []string
+    LogFormValues []string
     CaptureBody bool
     MaxBodySize int64
-    JSONFields []string
-    JSONPretty bool
-    DisableColors bool
 }
 ```
 
@@ -419,34 +497,15 @@ type LoggerConfig struct {
 
 | Field | Type | Description |
 | ----- | ---- | ----------- |
-| Format | `LogFormat` | Format is the log format to use. Default: LogFormatDev |
-| CustomFormat | `string` | CustomFormat is a custom format string using tokens. If set, Format is ignored (unless Format is LogFormatJSON). |
-| Output | `io.Writer` | Output is the writer to output logs to. Default: os.Stdout |
-| Skip | `func(r *http.Request) bool` | Skip is a function that determines if logging should be skipped. If it returns true, the request is not logged. |
-| TimeFormat | `string` | TimeFormat is the time format for the :date token. Default: time.RFC1123 |
-| Fields | `map[string]string` | Fields maps custom field names to their sources. Sources can be: - "header:X-Header-Name" - extracts from request header - "query:param_name" - extracts from query parameter - "cookie:cookie_name" - extracts from cookie Example: {"api_version": "header:X-API-Version", "page": "query:page"} |
-| CustomTokens | `map[string]TokenExtractor` | CustomTokens maps token names to extractor functions. These can extract data from the request body or perform custom logic. Token names should not include the leading colon. Example: {"user_id": func(r, body) string { ... }} |
-| CaptureBody | `bool` | CaptureBody enables capturing the request body for custom token extraction. When enabled, the request body is read and stored for token extractors. Default: false (only enable if you need body-based custom tokens) |
-| MaxBodySize | `int64` | MaxBodySize is the maximum size of the request body to capture. Default: 64KB |
-| JSONFields | `[]string` | JSONFields specifies which fields to include in JSON output. If empty, a default set of fields is used. Fields can be standard tokens (without colon) or custom field names. |
-| JSONPretty | `bool` | JSONPretty enables pretty-printing for JSON output. Default: false |
-| DisableColors | `bool` | DisableColors disables ANSI color codes in output. Default: false |
-
-### Constructor Functions
-
-### DefaultLoggerConfig
-
-DefaultLoggerConfig returns the default configuration for Logger.
-
-```go
-func DefaultLoggerConfig() LoggerConfig
-```
-
-**Parameters:**
-  None
-
-**Returns:**
-- LoggerConfig
+| Output | `LogOutputFunc` | Output is the callback that receives log values. Required. Use TextOutput() for Morgan.js-style formatting. Use helix.StructuredOutput() for logs package integration. Or provide your own function for custom logging. |
+| Skip | `func(r *http.Request) bool` | Skip determines if logging should be skipped for a request. |
+| Fields | `map[string]string` | Fields maps custom field names to their sources. Sources: "header:Name", "query:param", "cookie:name" |
+| CustomTokens | `map[string]TokenExtractor` | CustomTokens maps names to extractor functions for body/context data. |
+| LogHeaders | `[]string` | LogHeaders specifies request headers to extract into Headers map. |
+| LogQueryParams | `[]string` | LogQueryParams specifies query parameters to extract. |
+| LogFormValues | `[]string` | LogFormValues specifies form values to extract. |
+| CaptureBody | `bool` | CaptureBody enables request body capture for CustomTokens. |
+| MaxBodySize | `int64` | MaxBodySize limits captured body size. Default: 64KB. |
 
 ### Middleware
 Middleware is a function that wraps an http.Handler to provide additional functionality.
@@ -469,7 +528,7 @@ type Middleware func(next http.Handler) http.Handler
 
 ### API
 
-API returns a middleware bundle suitable for JSON API servers. Includes: RequestID, Logger (JSON format), Recover, and CORS.
+API returns a middleware bundle suitable for JSON API servers. Includes: RequestID, Recover, and CORS. Add logging via helix.LoggerMiddleware with your preferred RequestLogger.
 
 ```go
 func API() []Middleware
@@ -483,7 +542,7 @@ func API() []Middleware
 
 ### APIWithCORS
 
-APIWithCORS returns a middleware bundle suitable for JSON API servers with a custom CORS configuration. Includes: RequestID, Logger (JSON format), Recover, and CORS with config.
+APIWithCORS returns a middleware bundle suitable for JSON API servers with a custom CORS configuration. Includes: RequestID, Recover, and CORS with config. Add logging via helix.LoggerMiddleware with your preferred RequestLogger.
 
 ```go
 func APIWithCORS(cors CORSConfig) []Middleware
@@ -722,7 +781,7 @@ func CompressWithLevel(level int) Middleware
 
 ### Development
 
-Development returns a middleware bundle suitable for development. Includes: RequestID, Logger (dev format), Recover. This is the same as what helix.Default() uses.
+Development returns a middleware bundle suitable for development. Includes: RequestID, Recover. Add logging via helix.LoggerMiddleware with your preferred RequestLogger. This is the same as what helix.Default() uses (plus logging).
 
 ```go
 func Development() []Middleware
@@ -778,24 +837,10 @@ func ETagWithConfig(config ETagConfig) Middleware
 
 ### Logger
 
-Logger returns a middleware that logs HTTP requests. Uses the dev format by default.
+Logger returns a middleware with dev format text output.
 
 ```go
-func Logger(format LogFormat) Middleware
-```
-
-**Parameters:**
-- `format` (LogFormat)
-
-**Returns:**
-- Middleware
-
-### LoggerJSON
-
-LoggerJSON returns a middleware that logs HTTP requests in JSON format.
-
-```go
-func LoggerJSON() Middleware
+func Logger() Middleware
 ```
 
 **Parameters:**
@@ -814,34 +859,6 @@ func LoggerWithConfig(config LoggerConfig) Middleware
 
 **Parameters:**
 - `config` (LoggerConfig)
-
-**Returns:**
-- Middleware
-
-### LoggerWithFields
-
-LoggerWithFields returns a Logger middleware with custom fields.
-
-```go
-func LoggerWithFields(fields map[string]string) Middleware
-```
-
-**Parameters:**
-- `fields` (map[string]string)
-
-**Returns:**
-- Middleware
-
-### LoggerWithFormat
-
-LoggerWithFormat returns a Logger middleware with a custom format string.
-
-```go
-func LoggerWithFormat(format string) Middleware
-```
-
-**Parameters:**
-- `format` (string)
 
 **Returns:**
 - Middleware
@@ -876,7 +893,7 @@ func NoCache() Middleware
 
 ### Production
 
-Production returns a middleware bundle suitable for production environments. Includes: RequestID, Logger (combined format), Recover.
+Production returns a middleware bundle suitable for production environments. Includes: RequestID, Recover. Add logging via helix.LoggerMiddleware with your preferred RequestLogger.
 
 ```go
 func Production() []Middleware
@@ -990,7 +1007,7 @@ func RequestIDWithConfig(config RequestIDConfig) Middleware
 
 ### Secure
 
-Secure returns a middleware bundle with security-focused middleware. Includes: RequestID, Logger (JSON format), Recover, RateLimit. Note: You should also add CORS and authentication middleware as needed.
+Secure returns a middleware bundle with security-focused middleware. Includes: RequestID, Recover, RateLimit. Add logging via helix.LoggerMiddleware with your preferred RequestLogger. Note: You should also add CORS and authentication middleware as needed.
 
 ```go
 func Secure(rate float64, burst int) []Middleware
@@ -1035,7 +1052,7 @@ func TimeoutWithConfig(config TimeoutConfig) Middleware
 
 ### Web
 
-Web returns a middleware bundle suitable for web applications. Includes: RequestID, Logger (dev format), Recover, and Compress.
+Web returns a middleware bundle suitable for web applications. Includes: RequestID, Recover, and Compress. Add logging via helix.LoggerMiddleware with your preferred RequestLogger.
 
 ```go
 func Web() []Middleware
@@ -1241,6 +1258,38 @@ func DefaultRequestIDConfig() RequestIDConfig
 **Returns:**
 - RequestIDConfig
 
+### TextOutputOptions
+--- Text Output Helpers (Morgan.js style) --- TextOutputOptions configures text output formatting.
+
+#### Example Usage
+
+```go
+// Create a new TextOutputOptions
+textoutputoptions := TextOutputOptions{
+    TimeFormat: "example",
+    DisableColors: true,
+    JSONPretty: true,
+}
+```
+
+#### Type Definition
+
+```go
+type TextOutputOptions struct {
+    TimeFormat string
+    DisableColors bool
+    JSONPretty bool
+}
+```
+
+### Fields
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| TimeFormat | `string` |  |
+| DisableColors | `bool` |  |
+| JSONPretty | `bool` | for LogFormatJSON |
+
 ### TimeoutConfig
 TimeoutConfig configures the Timeout middleware.
 
@@ -1290,7 +1339,7 @@ func DefaultTimeoutConfig() TimeoutConfig
 - TimeoutConfig
 
 ### TokenExtractor
-TokenExtractor is a function that extracts a value from the request. It receives the request and the captured request body (if body capture is enabled).
+TokenExtractor extracts a custom value from the request.
 
 #### Example Usage
 
@@ -1310,7 +1359,7 @@ type TokenExtractor func(r *http.Request, body []byte) string
 
 ### ContextValueExtractor
 
-ContextValueExtractor creates a token extractor that extracts a value from request context.
+ContextValueExtractor creates a TokenExtractor for context values.
 
 ```go
 func ContextValueExtractor(key any) TokenExtractor
@@ -1324,7 +1373,7 @@ func ContextValueExtractor(key any) TokenExtractor
 
 ### FormValueExtractor
 
-FormValueExtractor creates a token extractor that extracts a form field.
+FormValueExtractor creates a TokenExtractor for form fields.
 
 ```go
 func FormValueExtractor(field string) TokenExtractor
@@ -1338,7 +1387,7 @@ func FormValueExtractor(field string) TokenExtractor
 
 ### JSONBodyExtractor
 
-JSONBodyExtractor creates a token extractor that extracts a field from JSON body. The path can be a simple field name like "user_id" or a nested path like "user.id".
+JSONBodyExtractor creates a TokenExtractor for JSON body fields.
 
 ```go
 func JSONBodyExtractor(path string) TokenExtractor
