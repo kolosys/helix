@@ -243,12 +243,12 @@ func isBindingError(err error) bool {
 	return len(errStr) > 6 && errStr[:6] == "helix:"
 }
 
-type VersionMap[Req, Res any] map[string]Handler[Req, Res]
+type VersionHandlerMap[Req, Res any] map[string]Handler[Req, Res]
 
 // HandleVersions wraps a generic Handler into an http.HandlerFunc that returns a versioned response.
 // The version is determined by the header value specified by headerName.
 // If no version header is present, defaultVersion is used.
-func HandleVersions[Req, Res any](headerName, defaultVersion string, versions VersionMap[Req, Res]) http.HandlerFunc {
+func HandleVersions[Req, Res any](headerName, defaultVersion string, versions VersionHandlerMap[Req, Res]) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		version := r.Header.Get(headerName)
 		if version == "" {

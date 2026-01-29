@@ -59,9 +59,6 @@ type Server struct {
 	autoPort        bool
 	maxPortAttempts int
 
-	// Logging
-	logOutput middleware.LogOutputFunc
-
 	// Lifecycle hooks
 	onStart []func(s *Server)
 	onStop  []func(ctx context.Context, s *Server)
@@ -108,7 +105,6 @@ func New(opts *Options) *Server {
 		basePath:        opts.BasePath,
 		autoPort:        opts.AutoPort,
 		maxPortAttempts: opts.MaxPortAttempts,
-		logOutput:       opts.LogOutput,
 	}
 
 	if s.banner == "" && !s.hideBanner {

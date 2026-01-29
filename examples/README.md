@@ -110,6 +110,23 @@ Request binding and validation examples.
 cd validation && go run main.go
 ```
 
+### [versioned](./versioned)
+
+Demonstrates versioned API endpoints using header-based version selection.
+
+**Features demonstrated:**
+
+- `HandleVersions` for header-based API version routing
+- `VersionHandlerMap` for mapping versions to handlers
+- Multiple API versions (v1, v2) from single endpoints
+- Request/response type evolution between versions
+- Backward compatibility patterns
+- Version downgrade transformations
+
+```bash
+cd versioned && go run main.go
+```
+
 ### [modular](./modular)
 
 Advanced example demonstrating modular architecture and dependency injection.
@@ -163,4 +180,10 @@ curl -u admin:secret http://localhost:8080/admin/dashboard
 
 # Search with query parameters
 curl "http://localhost:8080/search?q=widget&page=1&limit=10&tags=electronics"
+
+# Versioned API (default v1)
+curl http://localhost:8080/products/1
+
+# Versioned API (explicit v2)
+curl -H "API-Version: v2" http://localhost:8080/products/1
 ```
